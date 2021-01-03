@@ -32,6 +32,12 @@
   var linkurl;
   var comma = ",";
 
+  //set map variables
+  function initialize() {
+
+    map = new google.maps.Map(document.getElementById('map-canvas'),
+      mapOptions);
+  }
 </script>
 
 </head> 
@@ -46,7 +52,46 @@
   var location2coords = "<%= gamesDBResult[0].locations.location2coords %>".replace("(", "").replace(")", "").split(',');
   var location3 = "<%= gamesDBResult[0].locations.location3 %>";
   var location3coords = "<%= gamesDBResult[0].locations.location3coords %>".replace("(", "").replace(")", "").split(',');
-  var questions = [ [location1, location1coords[0], location1coords[1]], [location2, location2coords[0], location2coords[1]], [location3, location3coords[0], location3coords[1]] ] ;
+  var location4 = "<%= gamesDBResult[0].locations.location4 %>";
+  var location4coords = "<%= gamesDBResult[0].locations.location4coords %>".replace("(", "").replace(")", "").split(',');
+  var location5 = "<%= gamesDBResult[0].locations.location5 %>";
+  var location5coords = "<%= gamesDBResult[0].locations.location5coords %>".replace("(", "").replace(")", "").split(',');
+  var location6 = "<%= gamesDBResult[0].locations.location6 %>";
+  var location6coords = "<%= gamesDBResult[0].locations.location6coords %>".replace("(", "").replace(")", "").split(',');
+  var location7 = "<%= gamesDBResult[0].locations.location7 %>";
+  var location7coords = "<%= gamesDBResult[0].locations.location7coords %>".replace("(", "").replace(")", "").split(',');
+  var location8 = "<%= gamesDBResult[0].locations.location8 %>";
+  var location8coords = "<%= gamesDBResult[0].locations.location8coords %>".replace("(", "").replace(")", "").split(',');
+  var location9 = "<%= gamesDBResult[0].locations.location9 %>";
+  var location9coords = "<%= gamesDBResult[0].locations.location9coords %>".replace("(", "").replace(")", "").split(',');
+  var location10 = "<%= gamesDBResult[0].locations.location10 %>";
+  var location10coords = "<%= gamesDBResult[0].locations.location10coords %>".replace("(", "").replace(")", "").split(',');
+  var location11 = "<%= gamesDBResult[0].locations.location11 %>";
+  var location11coords = "<%= gamesDBResult[0].locations.location11coords %>".replace("(", "").replace(")", "").split(',');
+  var location12 = "<%= gamesDBResult[0].locations.location12 %>";
+  var location12coords = "<%= gamesDBResult[0].locations.location12coords %>".replace("(", "").replace(")", "").split(',');
+  var location13 = "<%= gamesDBResult[0].locations.location13 %>";
+  var location13coords = "<%= gamesDBResult[0].locations.location13coords %>".replace("(", "").replace(")", "").split(',');
+  var location14 = "<%= gamesDBResult[0].locations.location14 %>";
+  var location14coords = "<%= gamesDBResult[0].locations.location14coords %>".replace("(", "").replace(")", "").split(',');
+  var location15 = "<%= gamesDBResult[0].locations.location15 %>";
+  var location15coords = "<%= gamesDBResult[0].locations.location15coords %>".replace("(", "").replace(")", "").split(',');
+  var questions = [ [location1, location1coords[0], location1coords[1]], 
+  [location2, location2coords[0], location2coords[1]], 
+  [location3, location3coords[0], location3coords[1]], 
+  [location4, location4coords[0], location4coords[1]], 
+  [location5, location5coords[0], location5coords[1]], 
+  [location6, location6coords[0], location6coords[1]], 
+  [location7, location7coords[0], location7coords[1]], 
+  [location8, location8coords[0], location8coords[1]], 
+  [location9, location9coords[0], location9coords[1]], 
+  [location10, location10coords[0], location10coords[1]], 
+  [location11, location11coords[0], location11coords[1]], 
+  [location12, location12coords[0], location12coords[1]], 
+  [location13, location13coords[0], location13coords[1]], 
+  [location14, location14coords[0], location14coords[1]], 
+  [location15, location15coords[0], location15coords[1]]
+  ] ;
   
 
 
