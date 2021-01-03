@@ -1,5 +1,6 @@
 const cool = require('cool-ascii-faces');
 const express = require('express')
+const bodyParser = require('body-parser');
 const path = require('path')
 const PORT = process.env.PORT || 5000
 
@@ -13,23 +14,111 @@ const pool = new Pool({
 
 express()
   .use(express.static(path.join(__dirname, 'public')))
+  .use(bodyParser.urlencoded({ extended: true }))
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs')
-  .get('/', (req, res) => res.render('pages/index'))
+  .get('/robots.txt', function (req, res) {
+    res.type('text/plain');
+    res.send("User-agent: *\nDisallow: /");
+  })
   .get('/cool', (req, res) => res.send(cool()))
   .get('/times', (req, res) => res.send(showTimes()))
-  .get('/db', async (req, res) => {
+  .get('/', (req, res) => res.render('pages/index'))
+  .get('/voices', (req, res) => res.render('pages/voices'))
+  .get('/create-new-game', (req, res) => res.render('pages/create-new-game'))
+  .get('/play-game', async (req, res) => {
+    var gameId = req.query.gameId;
+    console.log('Got GET gameId:', gameId);
     try {
       const client = await pool.connect();
-      const result = await client.query('SELECT * FROM test_table');
+      const result = await client.query(`SELECT locations FROM games WHERE gameid='${gameId}'`);
       const results = { 'results': (result) ? result.rows : null};
-      res.render('pages/db', results );
+      console.log('Got DB results:', results.results[0].locations);
+      res.render('pages/play-game', results );
+      client.release();
+    } catch (err) {
+      console.error(err);
+      res.send("Error " + err);
+    }
+    })
+  .get('/view-results', async (req, res) => {
+    console.log('Got GET query:', req.query);
+    var gameId = req.query.gameId;
+    var gameName = req.query.gameName;
+    console.log('gameId:', gameId);
+    console.log('gameName:', gameName);
+    try {
+      const client = await pool.connect();
+      const result = await client.query(`INSERT INTO games(gameid, gamecode) VALUES ('${gameId}', '${gameName}')`);
+      const results = { 'results': (result) ? result.rows : null};
+      console.log('Got DB results:', results);
+      //res.sendStatus(200);
+      res.render('pages/play', results );
+      //client.release();
+    } catch (err) {
+      console.error(err);
+      res.send("Error " + err);
+    }
+  })
+  .post('/save-game', async (req, res) => {
+    console.log('Got POST body:', req.body);
+    var gameId = req.body.gameId;
+    req.body.timestamp = new Date().toString();
+    var locations = JSON.stringify(req.body);
+    try {
+      const client = await pool.connect();
+      const result = await client.query(`INSERT INTO games(gameid, locations) VALUES ('${gameId}', '${locations}')`);
+      const results = { 'gameId': gameId, 'body': req.body};
+      //res.sendStatus(200);
+      res.render('pages/share-game', results );
       client.release();
     } catch (err) {
       console.error(err);
       res.send("Error " + err);
     }
   })
+  .get('/save-result', async (req, res) => {
+    console.log('Got GET query:', req.query);
+    var gameId = req.query.gameId;
+    var resultuser = req.query.resultuser;
+    var resultlocationname = req.query.resultlocationname;
+    var resultcoordinates = req.query.resultcoordinates;
+    var resultid = resultuser + "_" + resultlocationname;
+    try {
+      const client = await pool.connect();
+      const result = await client.query(`INSERT INTO 
+        gameresults(resultid, gameid, resultuser, resultlocationname, resultcoordinates) 
+        VALUES ('${resultid}', '${gameId}', '${resultuser}', '${resultlocationname}', '${resultcoordinates}')
+        ON CONFLICT (resultid) DO UPDATE 
+          SET resultcoordinates = '${resultcoordinates}';`)
+      const results = { 'results': (result) ? result.rows : null};
+      console.log('Got DB results:', results);
+      //res.sendStatus(200);
+      res.json({'result': 'OK'})
+      client.release();
+    } catch (err) {
+      console.error(err);
+      res.send("Error " + err);
+    }
+  })
+  .get('/show-results', async (req, res) => {
+    var gameId = req.query.gameId;
+    console.log('/show-results Got GET gameId:', gameId);
+    try {
+      const client = await pool.connect();
+      const gamesDBResult = await client.query(`SELECT * FROM games WHERE gameid='${gameId}'`);
+      const resultsDBResult = await client.query(`SELECT * FROM gameresults WHERE gameid='${gameId}'`);
+      const results = { 'gamesDBResult': (gamesDBResult) ? gamesDBResult.rows : null,
+        'resultsDBResult': (resultsDBResult) ? resultsDBResult.rows : null};
+      //console.log('Got DB results:', results.results[0].locations);
+      console.log('Got DB results:', results);
+      res.render('pages/show-results', results );
+      client.release();
+    } catch (err) {
+      console.error(err);
+      res.send("Error " + err);
+    }
+    })
   .listen(PORT, () => console.log(`Listening on ${ PORT }`))
 
 showTimes = () => {

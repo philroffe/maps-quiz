@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Geocoding service</title>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <style>
+      /* Always set the map height explicitly to define the size of the div
+      * element that contains the map. */
+      #outer {
+        height: 100%;
+        width:100%;
+        margin: 10px;
+      }
+      #map {
+        height: 100%;
+        width:75%;
+        margin-left: 25%;
+      }
+      #quizIdDiv {
+        float: left;
+      }
+      #outer .floattext {
+        float: left;
+      }
+      #outer button {
+        background-color: #4CAF50; /* Green */
+        border: none;
+        color: white;
+        padding: 1px 4px;
+        margin-left: 10px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      </style>
+      <script type="text/javascript">
+    var gamecode = "N/A";
+
+    // program to generate random strings
+    // declare all characters
+    const characters ='0123456789';
+    function generateString(length) {
+      let result = ' ';
+      const charactersLength = characters.length;
+      for ( let i = 0; i < length; i++ ) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      }
+      return result;
+    }
+    </script>
+    <script src="countries-with-capitals.js"></script>
+  </head>
+  <body>
+    <div id="outer">
+     <div style="float: left; width: 300px;">
+
+      <div id="quizIdDiv">Quiz ID: Not Yet Generated</div> <button type="button" onclick="generateGamecode()">  Regenerate!</button>
+
+      <form action="/save-game" method="post">
+        <input type="hidden" id="gameId" name="gameId" value="NOT_YET_GENERATED" readonly>
+        <div class="floattext" >Your Name: 
+          <input type="text" id="creatorName" name="creatorName" value="Anon">
+        </div>
+          <p>Choose Quiz Locations:
+            <input type="text" id="location1" name="location1"><br>
+            <input type="hidden" id="location1coords" name="location1coords" value="N/A" readonly>
+            <input type="text" id="location2" name="location2"><br>
+            <input type="hidden" id="location2coords" name="location2coords" value="N/A" readonly>
+            <input type="text" id="location3" name="location3"><br>
+            <input type="hidden" id="location3coords" name="location3coords" value="N/A" readonly>
+            <input type="submit" value="Save">
+          </form>
+          <p>Or choose some randomly generated templates:
+            <br><button type="button" onclick="generateLocation();">Cities of the world</button>
+          <p>When you're finished:<a id="play" class="btn" href="">Share and play!</a>
+          </div>
+          <div id="map"></div>
+          <br style="clear: left;" />
+        </div>
+        <script>
+        var geocoder;
+        var map;
+        var address = "sunderland, uk";
+        var addressCoordsMap = {};
+        function initMap() {
+          map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 8,
+            center: {lat: -34.397, lng: 150.644}
+          });
+          geocoder = new google.maps.Geocoder();
+          codeAddress(geocoder, map, null);
+          document.getElementById("location1").click();
+      }
+
+      function generateLocation() {
+        // set location and add event listeners for the location text boxes
+        for (var i = 1; i < 4; i++) {
+          var randomNumber = Math.floor(Math.random() * countryList.length);
+          var element = document.getElementById("location" + i)
+          element.value = countryList[randomNumber][1] + ", " + countryList[randomNumber][0]
+          addEventListeners(element);
+        } 
+        if (geocoder) {
+          // click the first location to jump map to that location
+          // but only once map (and hence geocoder) has been initialised
+          document.getElementById("location1").click();
+        }
+      }
+      generateLocation()
+
+
+      function codeAddress(geocoder, map, element) {
+        geocoder.geocode({'address': address}, function(results, status) {
+          if (status === 'OK') {
+            map.setCenter(results[0].geometry.location);
+            var marker = new google.maps.Marker({
+              map: map,
+              position: results[0].geometry.location
+            });
+            addressCoordsMap[address] = results[0].geometry.location
+            console.log("LOCATION=" + results[0].geometry.location);
+
+            // update the hidden coords for the element that triggered the address lookup
+            if (element) {
+              document.getElementById(element.target.name + "coords").value = addressCoordsMap[element.target.value];
+              console.log("TARGETCOORDS=" + document.getElementById(element.target.name + "coords").value);
+            }
+            
+          } else {
+            alert('Geocode was not successful for the following reason: ' + status);
+          }
+        });
+      }
+
+      // add event listeners for the location text boxes
+      function addEventListeners(element) {
+        element.addEventListener("input", updateValue);
+        element.addEventListener("click", updateValue);
+      }
+
+      function updateValue(e) {
+        address = e.target.value
+        codeAddress(geocoder, map, e);
+      }
+
+      //document.getElementById("play").setAttribute("href", "play-game?gamecode=" + btoa(locationList));
+      //document.getElementById("play").setAttribute("href", "play-game?gamecode=" + gamecode);
+      </script>
+
+      <script type="text/javascript">
+      function generateGamecode() {
+        gamecode = generateString(6).trim();
+        document.getElementById("gameId").value=gamecode
+        document.getElementById("quizIdDiv").innerHTML="Quiz ID: " + gamecode
+        document.getElementById("play").setAttribute("href", "play-game?gamecode=" + gamecode);
+      }
+
+      generateGamecode();
+      </script>
+
+
+      <script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtf3cvpiBnQrcjL0GUb1IkGkqLRhMQz7Y&callback=initMap">
+      </script>
+
+    </body>
+    </html>

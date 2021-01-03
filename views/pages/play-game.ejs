@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Geolocation</title>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="https://nav.files.bbci.co.uk/orbit/ece9cb048f668bbc4cc6214737a6cdb6/css/orb-ltr.min.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="/stylesheets/play-game.css" />
+
+  <!-- <script src="questions.js"></script> -->
+
+  <script>
+  //parse the database results
+  var saveUrl = ""
+  var gameId = "<%= results[0].locations.gameId %>";
+  var location1 = "<%= results[0].locations.location1 %>";
+  var location2 = "<%= results[0].locations.location2 %>";
+  var location3 = "<%= results[0].locations.location3 %>";
+  var questions = [ [location1], [location2], [location3] ] ;
+
+  function saveResult() {
+    //const url = "http://localhost:5000/save-result?gameId=" + gameId;
+    const options = {};
+    fetch(saveurl, options)
+     .then( res => res.json() )
+     .then( data => console.log(data) );
+    //}
+    // const body = { gameId: gameId };     
+    // var obj = { name: "John", age: 30, city: "New York" };
+
+    //  fetch('http://localhost:5000/save-result', { method: 'POST', body: 'a=1' })
+    //    .then(res => res.json()) // expecting a json response
+    //    .then(json => console.log(json));
+
+    // fetch('http://localhost:5000/save-result', {
+    //         method: 'post',
+    //         body:    JSON.stringify(obj),
+    //         headers: { 'Content-Type': 'application/json' },
+    //     })
+    //     .then(res => res.json())
+    //     .then(json => console.log(json));
+    //   console.log(JSON.stringify(body))
+      }
+  </script>
+
+  <script type="text/javascript"
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtf3cvpiBnQrcjL0GUb1IkGkqLRhMQz7Y">
+  </script>
+
+  <script src="map-options.js"></script>
+
+  <script>
+  // Note: This example requires that you consent to location sharing when
+  // prompted by your browser. If you see a blank space instead of the map, this
+  // is probably because you have denied permission for location sharing.
+
+  var map;
+  var marker;
+  var laturl;
+  var lngurl;
+  // var baseurl = "?coordinates=";
+  var baseurl = "/save-result?resultid=";
+  var linkurl;
+  var comma = ",";
+
+  //set map variables
+  function initialize() {
+
+    map = new google.maps.Map(document.getElementById('map-canvas'),
+      mapOptions);
+
+    var person = location.search.split('person=')[1];
+    if (person == null) {
+      person = "";
+    } else {
+      person = person.split('&')[0];
+    }
+    document.getElementById('fullname').value = person;
+
+    var question = ""
+    document.getElementById('question').selectedIndex = 0;
+
+
+    //var questioninput= document.getElementById('question');
+    //    questioninput.onchange= function() {
+    //    question = questioninput.options[questioninput.selectedIndex].text;
+    //    updateSubmitURL();
+    //};
+
+    var pos = new google.maps.LatLng(51.4975941, -0.0803232);
+    var marker = new google.maps.Marker({
+      map: map,
+      position: pos,
+      title: 'Drag to location, and click submit when you\'re ready',
+      draggable: true,
+    });
+
+    //gets the pre-drag lat/long coordinates as a pair
+    document.getElementById("latbox").innerHTML=marker.getPosition().lat(); 
+
+    //gets the pre-drag latlong coordinate
+    document.getElementById("latbox").innerHTML=marker.getPosition().lat(); 
+    document.getElementById("longbox").innerHTML=marker.getPosition().lng();
+    var laturl=marker.getPosition().lat();
+    var lngurl=marker.getPosition().lng();
+    var linkurl=baseurl.concat(laturl,comma,lngurl);
+    document.getElementById("linkurl").href=linkurl;
+
+    //gets the new latlong if the marker is dragged     
+    google.maps.event.addListener(marker, "drag", function(){
+      updateSubmitURL();
+    });
+
+    map.setCenter(pos);
+
+
+    var fullnameinput = document.getElementById('fullname');
+    fullnameinput.onchange=fullnameinput.onkeyup= function() {
+      person = fullnameinput.value;
+      updateSubmitURL();
+    };
+
+    var questioninput= document.getElementById('question');
+    questioninput.onchange= function() {
+      question = questioninput.options[questioninput.selectedIndex].text;
+      updateSubmitURL();
+    };
+
+    function updateSubmitURL() {
+      document.getElementById("latbox").innerHTML=marker.getPosition().lat();
+      document.getElementById("longbox").innerHTML=marker.getPosition().lng();
+      var laturl=marker.getPosition().lat();
+      var lngurl=marker.getPosition().lng();
+      if (person != null) {
+        person.trim().replace(/ /g, '').replace(/\'/g, '');
+      }
+      var linkurl=baseurl.concat(laturl,comma,lngurl,"&question=",question,"&person=",person);
+      saveurl=baseurl.concat(person,"_",question,"&gameId=",gameId,"&resultuser=",person,"&resultlocationname=",question,"&resultcoordinates=",laturl,comma,lngurl);
+      //resultid=Phil_Sunderland&gameId=638176&resultuser=Phil&resultlocationname=Sunderland,UK&resultcoordinates=0,2'
+
+      document.getElementById("linkurl").href=saveurl;
+      document.getElementById("linkurl").style.visibility = "visible"; 
+
+    // hide the submit link if it's not
+    if (question == null || question == "Select..." || question == "") {
+      document.getElementById("linkurl").href="#ChooseQuestion";
+      document.getElementById("linkurl").style.visibility = "hidden"; 
+    }
+    if (person == null || person == "") {
+      document.getElementById("linkurl").href="#AddName";
+      document.getElementById("linkurl").style.visibility = "hidden"; 
+    }
+    
+  }
+  updateSubmitURL();
+
+
+  // polulate the dropdown list of questions
+  for (i = 0; i < questions.length; i++) {
+    var select = document.getElementById("question");
+    select.options[select.options.length] = new Option(questions[i][0]);
+    //console.log(questions[i])
+  }
+
+}
+
+google.maps.event.addDomListener(window, 'load', initialize);
+
+</script>
+
+</head>
+<body>
+  <div id="map-canvas"></div>
+  <div class="main">
+   <b>Enter your name, choose a location, move the pin...</b>
+   <h3> 
+    Name:<input type="text" id="fullname" name="fullname" maxlength="6" size="6">
+    <select name="question" id="question">
+      <option value="NULL">Select...</option>
+    </select>
+    <p>
+      <button id="linkurl" class="btn" onclick="saveResult()">Submit1</button>
+    </h3>
+  </div>
+  <div id="latbox"></div>
+  <div id="longbox"></div>
+
+</body>
+</html>
