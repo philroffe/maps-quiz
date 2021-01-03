@@ -86,7 +86,7 @@
   [location14, location14coords[0], location14coords[1]], 
   [location15, location15coords[0], location15coords[1]]
   ] ;
-  console.log(questions)
+  //console.log(questions)
   
   // 0: "Sunderland, UK"
   // 1: "54.906869"
@@ -159,7 +159,7 @@
     icon: image
     });
     locationMarker.set(questions[i][0], marker);
-    console.log("locationMarker=" + questions[i][0] + "____" +marker);
+    //console.log("locationMarker=" + questions[i][0] + "____" +marker);
     //locationMarker.set(questions[i][0].replaceAll(" ", ""), marker);
   }
 
@@ -197,18 +197,19 @@
     label: name,
 	//icon: icon_image
 })
-   console.log("RESULTS lat=" + resultLocations[i][1] + "+++ lng=" + resultLocations[i][2])
+   //console.log("RESULTS lat=" + resultLocations[i][1] + "+++ lng=" + resultLocations[i][2])
 ;
 
    var question = resultLocations[i][0].split("_")[1]
-   console.log("loc=" + resultLocations[i][0] + "+++ question=" + question)
+   //console.log("loc=" + resultLocations[i][0] + "+++ question=" + question)
    questionMarker = locationMarker.get(question)
 
    var line = new google.maps.Polyline({path: [marker.getPosition(), questionMarker.getPosition()], map: map});
       //var polylineLength = google.maps.geometry.spherical.computeLength(line.getPath()) / 1000;
       var polylineLength = haversine_distance(marker, questionMarker);
       resultLocations[i][2] = polylineLength;
-      console.log("errorish:" + question + " _____ " + questionMarker + "----" + polylineLength + "====" + resultLocations[i][2] + "==" + name)
+      //console.log("errorish:" + question + " _____ " + questionMarker + "----" + polylineLength + "====" + resultLocations[i][2] + "==" + name)
+      console.log("Location=" + question + " Distance=" + resultLocations[i][2] + " Name=" + name)
 
       google.maps.event.addListener(marker, 'click', (function(marker, i) {
         return function() {
@@ -218,13 +219,6 @@
       })(marker, i));
     }
     </script>
-
-
-<ul>
-    <% resultsDBResult.forEach(function(r) { %>
-        <li><%= r.resultid %> - <%= r.gameid %></li>
-    <% }); %>
-</ul>
 
   </body>
   </html>
