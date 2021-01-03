@@ -57,6 +57,7 @@
     }
     </script>
     <script src="countries-with-capitals.js"></script>
+    <script src="liverpool-birth-locations.js"></script>
   </head>
   <body>
     <div id="outer">
@@ -76,10 +77,36 @@
             <input type="hidden" id="location2coords" name="location2coords" value="N/A" readonly>
             <input type="text" id="location3" name="location3"><br>
             <input type="hidden" id="location3coords" name="location3coords" value="N/A" readonly>
+            <input type="text" id="location4" name="location4"><br>
+            <input type="hidden" id="location4coords" name="location4coords" value="N/A" readonly>
+            <input type="text" id="location5" name="location5"><br>
+            <input type="hidden" id="location5coords" name="location5coords" value="N/A" readonly>
+            <input type="text" id="location6" name="location6"><br>
+            <input type="hidden" id="location6coords" name="location6coords" value="N/A" readonly>
+            <input type="text" id="location7" name="location7"><br>
+            <input type="hidden" id="location7coords" name="location7coords" value="N/A" readonly>
+            <input type="text" id="location8" name="location8"><br>
+            <input type="hidden" id="location8coords" name="location8coords" value="N/A" readonly>
+            <input type="text" id="location9" name="location9"><br>
+            <input type="hidden" id="location9coords" name="location9coords" value="N/A" readonly>
+            <input type="text" id="location10" name="location10"><br>
+            <input type="hidden" id="location10coords" name="location10coords" value="N/A" readonly>
+            <input type="text" id="location11" name="location11"><br>
+            <input type="hidden" id="location11coords" name="location11coords" value="N/A" readonly>
+            <input type="text" id="location12" name="location12"><br>
+            <input type="hidden" id="location12coords" name="location12coords" value="N/A" readonly>
+            <input type="text" id="location13" name="location13"><br>
+            <input type="hidden" id="location13coords" name="location13coords" value="N/A" readonly>
+            <input type="text" id="location14" name="location14"><br>
+            <input type="hidden" id="location14coords" name="location14coords" value="N/A" readonly>
+            <input type="text" id="location15" name="location15"><br>
+            <input type="hidden" id="location15coords" name="location15coords" value="N/A" readonly>
             <input type="submit" value="Save">
           </form>
           <p>Or choose some randomly generated templates:
             <br><button type="button" onclick="generateLocation();">Cities of the world</button>
+            <br><button type="button" onclick="generateLiverpoolPlayersBirthLocation();">Liverpool Players Birth Locations</button>
+            
           <p>When you're finished:<a id="play" class="btn" href="">Share and play!</a>
           </div>
           <div id="map"></div>
@@ -115,6 +142,21 @@
         }
       }
       generateLocation()
+
+
+      function generateLiverpoolPlayersBirthLocation() {
+        // set location and add event listeners for the location text boxes
+        for (var i = 1; i < 16; i++) {
+          var element = document.getElementById("location" + i)
+          element.value = liverpoolPlayersBirthList[i][1];
+          addEventListeners(element);
+        } 
+        if (geocoder) {
+          // click the first location to jump map to that location
+          // but only once map (and hence geocoder) has been initialised
+          document.getElementById("location1").click();
+        }
+      }
 
 
       function codeAddress(geocoder, map, element) {

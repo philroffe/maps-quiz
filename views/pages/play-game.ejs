@@ -19,7 +19,19 @@
   var location1 = "<%= results[0].locations.location1 %>";
   var location2 = "<%= results[0].locations.location2 %>";
   var location3 = "<%= results[0].locations.location3 %>";
-  var questions = [ [location1], [location2], [location3] ] ;
+  var location4 = "<%= results[0].locations.location4 %>";
+  var location5 = "<%= results[0].locations.location5 %>";
+  var location6 = "<%= results[0].locations.location6 %>";
+  var location7 = "<%= results[0].locations.location7 %>";
+  var location8 = "<%= results[0].locations.location8 %>";
+  var location9 = "<%= results[0].locations.location9 %>";
+  var location10 = "<%= results[0].locations.location10 %>";
+  var location11 = "<%= results[0].locations.location11 %>";
+  var location12 = "<%= results[0].locations.location12 %>";
+  var location13 = "<%= results[0].locations.location13 %>";
+  var location14 = "<%= results[0].locations.location14 %>";
+  var location15 = "<%= results[0].locations.location15 %>";
+  var questions = [ [location1], [location2], [location3], [location4], [location5], [location6], [location7], [location8], [location9], [location10], [location11], [location12], [location13], [location14], [location15] ] ;
 
   function saveResult() {
     //const url = "http://localhost:5000/save-result?gameId=" + gameId;
@@ -182,7 +194,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
       <option value="NULL">Select...</option>
     </select>
     <p>
-      <button id="linkurl" class="btn" onclick="saveResult()">Submit1</button>
+      <button id="linkurl" class="btn" onclick="saveResult()">Submit</button>
     </h3>
   </div>
   <div id="latbox"></div>

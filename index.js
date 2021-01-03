@@ -119,6 +119,24 @@ express()
       res.send("Error " + err);
     }
     })
+  .get('/show-results2', async (req, res) => {
+    var gameId = req.query.gameId;
+    console.log('/show-results2 Got GET gameId:', gameId);
+    try {
+      const client = await pool.connect();
+      const gamesDBResult = await client.query(`SELECT * FROM games WHERE gameid='${gameId}'`);
+      const resultsDBResult = await client.query(`SELECT * FROM gameresults WHERE gameid='${gameId}'`);
+      const results = { 'gamesDBResult': (gamesDBResult) ? gamesDBResult.rows : null,
+        'resultsDBResult': (resultsDBResult) ? resultsDBResult.rows : null};
+      //console.log('Got DB results:', results.results[0].locations);
+      console.log('Got DB results:', results);
+      res.render('pages/show-results2', results );
+      client.release();
+    } catch (err) {
+      console.error(err);
+      res.send("Error " + err);
+    }
+    })
   .listen(PORT, () => console.log(`Listening on ${ PORT }`))
 
 showTimes = () => {
