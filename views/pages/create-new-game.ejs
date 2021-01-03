@@ -125,23 +125,23 @@
           geocoder = new google.maps.Geocoder();
           codeAddress(geocoder, map, null);
           document.getElementById("location1").click();
-      }
+      } 
 
       function generateLocation() {
         // set location and add event listeners for the location text boxes
-        for (var i = 1; i < 4; i++) {
+        for (var i = 1; i < 16; i++) {
           var randomNumber = Math.floor(Math.random() * countryList.length);
           var element = document.getElementById("location" + i)
           element.value = countryList[randomNumber][1] + ", " + countryList[randomNumber][0]
           addEventListeners(element);
+          if (geocoder) {
+            // click the first location to jump map to that location
+            // but only once map (and hence geocoder) has been initialised
+            document.getElementById("location" + i).click();
+          }
         } 
-        if (geocoder) {
-          // click the first location to jump map to that location
-          // but only once map (and hence geocoder) has been initialised
-          document.getElementById("location1").click();
-        }
       }
-      generateLocation()
+      //generateLocation()
 
 
       function generateLiverpoolPlayersBirthLocation() {
