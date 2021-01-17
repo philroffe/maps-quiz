@@ -10,8 +10,6 @@
   <meta http-equiv="content-type" content="text/html; charset=UTF-8" /> 
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
   <title>Map Quiz Results</title> 
-  <script src="https://maps.google.com/maps/api/js?key=AIzaSyDtf3cvpiBnQrcjL0GUb1IkGkqLRhMQz7Y&sensor=false&libraries=geometry" 
-  type="text/javascript"></script>
   <style>
   html, body {
     height: 100%;
@@ -88,37 +86,6 @@
   ] ;
   //console.log(questions)
   
-  // 0: "Sunderland, UK"
-  // 1: "54.906869"
-  // 2: " -1.383801"
-  
-  
-// Sunderland...
-//https://www.latlong.net/c/?lat=54.90688285427509&long=-1.375250797045906
-
-//RESULTS lat=54.90688285427509+++ lng=54.90688285427509
-
-  // var locations = [
-  // ["Jones_Lima", -7.159340532013569,-78.26782775975533, 1],
-  // ["AngelaBreen_Lima", -12.743553562845102,-70.39282320000001, 2],
-  // ];
-
-  
-
-// Got DB results: { gamesDBResult:
-//     [ { id: 2,
-//          gameid: '935125    ',
-//          created_at: 2021-01-03T17:05:49.111Z,
-//          locations: [Object] } ],
-    
-//     resultsDBResult:
-//      [ { resultid: 'Phil_Tehran, Iran',
-//          gameid: '935125    ',
-//          created_at: 2021-01-03T17:10:09.261Z,
-//          resultuser: 'Phil',
-//          resultlocationname: 'Tehran, Iran',
-//          resultcoordinates: '44.765221343631985,20.66186429999999' },
-       
 
   var resultLocations = [
     <% resultsDBResult.forEach(function(r) { %>
@@ -126,53 +93,56 @@
     <% }); %>
     ];
 
-  // var resultLocations = [
-  // ["Phil_Helsinki, Finland", 55.667484661882334,14.245848674999992, 1],
-  // ];
-
- // Phil_Helsinki, Finland | 638176     | 2021-01-03 15:39:14.498447 | Phil       | Helsinki, Finland  | 55.667484661882334,14.245848674999992
- // Phil_Niamey, Niger     | 638176     | 2021-01-03 15:39:29.742681 | Phil       | Niamey, Niger      | -0.7210158035310592,35.51537992499999
- // Phil_Stockholm, Sweden | 638176     | 2021-01-03 15:39:47.88321  | Phil       | Stockholm, Sweden  | 56.81513133871018,13.059325237499992
-
 
   </script>
 
   <script type="text/javascript">
-  var map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 3,
-    center: new google.maps.LatLng(51.00, 0),
-    mapTypeId: google.maps.MapTypeId.ROADMAP
+  var geocoder;
+  var map;
+  var addressCoordsMap = {};
+  function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 3,
+      center: {lat: -34.397, lng: 150.644},
+      mapTypeId: google.maps.MapTypeId.ROADMAP
   });
+  geocoder = new google.maps.Geocoder();
+  //codeAddress(geocoder, map, null);
 
   var infowindow = new google.maps.InfoWindow();
   var marker, i;
-  const image = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png";
 
   var locationMarker = new Map();
-  // console.log("error-ish:" + address + " _____ " + marker)
-  // locationMarker.set(resultLocations[i], marker);
   for (i = 0; i < questions.length; i++) {
     //    var address = questions[i].toString()
     marker = new google.maps.Marker({
     position: new google.maps.LatLng(questions[i][1], questions[i][2]),
     map: map,
-    icon: image
+    icon: "beachflag.png"
     });
     locationMarker.set(questions[i][0], marker);
     //console.log("locationMarker=" + questions[i][0] + "____" +marker);
     //locationMarker.set(questions[i][0].replaceAll(" ", ""), marker);
   }
 
-  function haversine_distance(mk1, mk2) {
-    var R = 3958.8; // Radius of the Earth in miles
-    var rlat1 = mk1.position.lat() * (Math.PI/180); // Convert degrees to radians
-    var rlat2 = mk2.position.lat() * (Math.PI/180); // Convert degrees to radians
-    var difflat = rlat2-rlat1; // Radian difference (latitudes)
-    var difflon = (mk2.position.lng()-mk1.position.lng()) * (Math.PI/180); // Radian difference (longitudes)
 
-    var d = 2 * R * Math.asin(Math.sqrt(Math.sin(difflat/2)*Math.sin(difflat/2)+Math.cos(rlat1)*Math.cos(rlat2)*Math.sin(difflon/2)*Math.sin(difflon/2)));
-    return d;
-  }
+  // DOES NOT QUITE WORK...
+  // 1. API EXCEED ERROR
+  // 2. addressCoordsMap seems undefined
+  // for (i = 0; i < questions.length; i++) {
+  //   // generate Lat/Lng from the question location
+  //   codeAddress(geocoder, map, questions[i][0]);
+  //   var locationCoords = addressCoordsMap[questions[i][0]]
+  //   console.log("locationMarker=" + questions[i][0] + "____" + locationCoords + "----" + questions[i][1] + "," + questions[i][2]);
+
+  //   marker = new google.maps.Marker({
+  //   position: new google.maps.LatLng(questions[i][1], questions[i][2]),
+  //   map: map,
+  //   icon: "beachflag.png"
+  //   });
+  //   locationMarker.set(questions[i][0], marker);
+  //   //console.log("locationMarker=" + questions[i][0] + "____" + marker);
+  // }
 
 
   // Display the results as markers
@@ -218,7 +188,43 @@
         }
       })(marker, i));
     }
+}
+
+  function haversine_distance(mk1, mk2) {
+    var R = 3958.8; // Radius of the Earth in miles
+    var rlat1 = mk1.position.lat() * (Math.PI/180); // Convert degrees to radians
+    var rlat2 = mk2.position.lat() * (Math.PI/180); // Convert degrees to radians
+    var difflat = rlat2-rlat1; // Radian difference (latitudes)
+    var difflon = (mk2.position.lng()-mk1.position.lng()) * (Math.PI/180); // Radian difference (longitudes)
+
+    var d = 2 * R * Math.asin(Math.sqrt(Math.sin(difflat/2)*Math.sin(difflat/2)+Math.cos(rlat1)*Math.cos(rlat2)*Math.sin(difflon/2)*Math.sin(difflon/2)));
+    return d;
+  }
+
+//////////////////////////
+////////////////////////
+//////////////////////
+
+      function codeAddress(geocoder, map, address) {
+        geocoder.geocode({'address': address}, function(results, status) {
+          if (status === 'OK') {
+            map.setCenter(results[0].geometry.location);
+            var marker = new google.maps.Marker({
+              map: map,
+              position: results[0].geometry.location
+            });
+            addressCoordsMap[address] = results[0].geometry.location
+            console.log("LOCATION=" + results[0].geometry.location);
+          } else {
+            alert('Geocode was not successful for the following reason: ' + status);
+          }
+        });
+      }
+
     </script>
 
+      <script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtf3cvpiBnQrcjL0GUb1IkGkqLRhMQz7Y&libraries=geometry&callback=initMap">
+      </script>
   </body>
   </html>
