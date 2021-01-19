@@ -26,6 +26,24 @@ express()
   .get('/', (req, res) => res.render('pages/index'))
   .get('/voices', (req, res) => res.render('pages/voices'))
   .get('/create-new-game', (req, res) => res.render('pages/create-new-game'))
+  .get('/api/get-game-details', async (req, res) => {
+    console.log('Got API GET GAME query:', req.query);
+    var gameId = req.query.gameId;
+    console.log('gameId:', gameId);
+    try {
+      const client = await pool.connect();
+      const result = await client.query(`SELECT locations FROM games WHERE gameid='${gameId}'`);
+      const results = { 'results': (result) ? result.rows : null};
+      console.log('Got DB results:', results.results[0].locations);
+      res.send(results.results[0].locations);
+      //res.sendStatus(200);
+      //res.render('pages/play', results );
+      client.release();
+    } catch (err) {
+      console.error(err);
+      res.send("Error " + err);
+    }
+  })
   .get('/play-game', async (req, res) => {
     var gameId = req.query.gameId;
     console.log('Got GET gameId:', gameId);

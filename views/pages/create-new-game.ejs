@@ -106,7 +106,9 @@
           <p>Or choose some randomly generated templates:
             <br><button type="button" onclick="generateLocation();">Cities of the world</button>
             <br><button type="button" onclick="generateLiverpoolPlayersBirthLocation();">Liverpool Players Birth Locations</button>
-            
+            <br><button type="button" onclick="generateFromPreviousGame();">Previous game:</button>
+            <input type="text" id="previousGameId" name="previousGameId"><br>
+
           <p>When you're finished:<a id="play" class="btn" href="">Share and play!</a>
           </div>
           <div id="map"></div>
@@ -126,6 +128,26 @@
           codeAddress(geocoder, map, null);
           document.getElementById("location1").click();
       } 
+
+      function generateFromPreviousGame() {
+        var previousGameId = document.getElementById("previousGameId").value
+console.log("ppp="+previousGameId)
+        if (previousGameId) {
+        var url='http://192.168.0.82:5000/api/get-game-details?gameId='+previousGameId
+        fetch(url)
+        .then(response => response.json())
+        .then(function(response) {
+          //console.log(response)
+          for (var i = 1; i < 16; i++) {
+            var element = document.getElementById("location" + i)
+            element.value = response["location"+i];
+            var elementcoords = document.getElementById("location" + i + "coords")
+            elementcoords.value = response["location" + i + "coords"];
+            addEventListeners(element);
+          }
+        });
+      } 
+}
 
       function generateLocation() {
         // set location and add event listeners for the location text boxes
