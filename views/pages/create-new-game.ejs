@@ -133,7 +133,7 @@
         var previousGameId = document.getElementById("previousGameId").value
 console.log("ppp="+previousGameId)
         if (previousGameId) {
-        var url='http://192.168.0.82:5000/api/get-game-details?gameId='+previousGameId
+        var url='/api/get-game-details?gameId='+previousGameId
         fetch(url)
         .then(response => response.json())
         .then(function(response) {
