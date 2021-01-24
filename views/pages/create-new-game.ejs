@@ -14,8 +14,8 @@
       }
       #map {
         height: 100%;
-        width:75%;
-        margin-left: 25%;
+        width:80%;
+        margin-left: 20%;
       }
       #quizIdDiv {
         float: left;
@@ -24,7 +24,7 @@
         float: left;
       }
       #outer button {
-        background-color: #4CAF50; /* Green */
+        background-color: #008CBA; /* Blue */
         border: none;
         color: white;
         padding: 1px 4px;
@@ -33,6 +33,25 @@
         text-decoration: none;
         display: inline-block;
         font-size: 14px;
+      }
+      #outer input[type=submit] {
+        background-color: #4CAF50; /* Green */
+        color: white;
+        font-size: 18px;
+      }
+      #bottom button {
+        background-color: #CCCCCC; /* Grey */
+        border: none;
+        color: black;
+        padding: 1px 4px;
+        margin-left: 10px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+      }
+      #bottom input {
+        font-size: 10px;
       }
       /* Optional: Makes the sample page fill the window. */
       html, body {
@@ -57,7 +76,7 @@
     }
     </script>
     <script src="countries-with-capitals.js"></script>
-    <script src="liverpool-birth-locations.js"></script>
+    <script src="quiz-data.js"></script>
   </head>
   <body>
     <div id="outer">
@@ -65,60 +84,42 @@
 
       <div id="quizIdDiv">Quiz ID: Not Yet Generated</div> <button type="button" onclick="generateGamecode()">  Regenerate!</button>
 
-      <form action="/save-game" method="post">
+      <form id="locationForm" action="/save-game" method="post">
         <input type="hidden" id="gameId" name="gameId" value="NOT_YET_GENERATED" readonly>
         <div class="floattext" >Your Name: 
-          <input type="text" id="creatorName" name="creatorName" value="Anon">
+          <input type="text" id="creatorName" name="creatorName" value="Anon" maxlength="6" size="6" data-lpignore="true">
+          <br>
         </div>
-          <p>Choose Quiz Locations:
-            <input type="text" id="location1" name="location1"><br>
-            <input type="hidden" id="location1coords" name="location1coords" value="N/A" readonly>
-            <input type="text" id="location2" name="location2"><br>
-            <input type="hidden" id="location2coords" name="location2coords" value="N/A" readonly>
-            <input type="text" id="location3" name="location3"><br>
-            <input type="hidden" id="location3coords" name="location3coords" value="N/A" readonly>
-            <input type="text" id="location4" name="location4"><br>
-            <input type="hidden" id="location4coords" name="location4coords" value="N/A" readonly>
-            <input type="text" id="location5" name="location5"><br>
-            <input type="hidden" id="location5coords" name="location5coords" value="N/A" readonly>
-            <input type="text" id="location6" name="location6"><br>
-            <input type="hidden" id="location6coords" name="location6coords" value="N/A" readonly>
-            <input type="text" id="location7" name="location7"><br>
-            <input type="hidden" id="location7coords" name="location7coords" value="N/A" readonly>
-            <input type="text" id="location8" name="location8"><br>
-            <input type="hidden" id="location8coords" name="location8coords" value="N/A" readonly>
-            <input type="text" id="location9" name="location9"><br>
-            <input type="hidden" id="location9coords" name="location9coords" value="N/A" readonly>
-            <input type="text" id="location10" name="location10"><br>
-            <input type="hidden" id="location10coords" name="location10coords" value="N/A" readonly>
-            <input type="text" id="location11" name="location11"><br>
-            <input type="hidden" id="location11coords" name="location11coords" value="N/A" readonly>
-            <input type="text" id="location12" name="location12"><br>
-            <input type="hidden" id="location12coords" name="location12coords" value="N/A" readonly>
-            <input type="text" id="location13" name="location13"><br>
-            <input type="hidden" id="location13coords" name="location13coords" value="N/A" readonly>
-            <input type="text" id="location14" name="location14"><br>
-            <input type="hidden" id="location14coords" name="location14coords" value="N/A" readonly>
-            <input type="text" id="location15" name="location15"><br>
-            <input type="hidden" id="location15coords" name="location15coords" value="N/A" readonly>
-            <input type="submit" value="Save">
+        <br>
+          <p>Choose Quiz Locations:<br>
+            <span id="dynamicForm"></span>
+              <br><button type="button" onclick="addAnotherLocation();">(+) Add Location</button>
+                  <button type="button" onclick="removeLastLocation();">(-) Remove Location</button>
+              <br><br><input type="submit" value="Submit and Play Game..."><br>
           </form>
-          <p>Or choose some randomly generated templates:
-            <br><button type="button" onclick="generateLocation();">Cities of the world</button>
-            <br><button type="button" onclick="generateLiverpoolPlayersBirthLocation();">Liverpool Players Birth Locations</button>
-            <br><button type="button" onclick="generateFromPreviousGame();">Previous game:</button>
-            <input type="text" id="previousGameId" name="previousGameId"><br>
-
-          <p>When you're finished:<a id="play" class="btn" href="">Share and play!</a>
+          <p>
+          <hr>
+          <details>
+            <summary>Advanced options...</summary>
+          <div id="bottom">
+            <p>Clone a previous game:
+            <span id="listPreviousQuizzes"></span>
+            <br><button type="button" onclick="generateFromPreviousGame();">Previous Game ID:</button>
+            <input type="text" id="previousGameId" name="previousGameId" maxlength="6" size="6" data-lpignore="true">
+          <p>Generate from template:
+            <br><button type="button" onclick="generateCapitalCities();">10 Cities of the world</button>
+            <br><button type="button" onclick="generateLiverpoolPlayersBirthLocation();">15 Liverpool Players Birth Locations</button>
           </div>
+          </details>
+        </div>
           <div id="map"></div>
           <br style="clear: left;" />
-        </div>
         <script>
+        var locationCount = 0;
+
         var geocoder;
         var map;
-        var address = "sunderland, uk";
-        var addressCoordsMap = {};
+        //var address = "sunderland, uk";
         function initMap() {
           map = new google.maps.Map(document.getElementById('map'), {
             zoom: 8,
@@ -126,76 +127,102 @@
           });
           geocoder = new google.maps.Geocoder();
           codeAddress(geocoder, map, null);
-          document.getElementById("location1").click();
-      } 
-
-      function generateFromPreviousGame() {
-        var previousGameId = document.getElementById("previousGameId").value
-console.log("ppp="+previousGameId)
-        if (previousGameId) {
-        var url='/api/get-game-details?gameId='+previousGameId
-        fetch(url)
-        .then(response => response.json())
-        .then(function(response) {
-          //console.log(response)
-          for (var i = 1; i < 16; i++) {
-            var element = document.getElementById("location" + i)
-            element.value = response["location"+i];
-            var elementcoords = document.getElementById("location" + i + "coords")
-            elementcoords.value = response["location" + i + "coords"];
-            addEventListeners(element);
-          }
-        });
-      } 
-}
-
-      function generateLocation() {
-        // set location and add event listeners for the location text boxes
-        for (var i = 1; i < 16; i++) {
-          var randomNumber = Math.floor(Math.random() * countryList.length);
-          var element = document.getElementById("location" + i)
-          element.value = countryList[randomNumber][1] + ", " + countryList[randomNumber][0]
-          addEventListeners(element);
-          if (geocoder) {
-            // click the first location to jump map to that location
-            // but only once map (and hence geocoder) has been initialised
-            document.getElementById("location" + i).click();
-          }
-        } 
       }
-      //generateLocation()
 
+      // add an addition text box and hook up listeners
+      function addAnotherLocation() {
+        locationCount++;
+        if (locationCount > 30) {
+          // set a max list of locations (otherwise the results page will be too messy and slow)
+          return;
+        }
+        var form = document.getElementById("dynamicForm")
+        // create a location text box
+        var newLocationText = document.createElement("input"); 
+        newLocationText.setAttribute("type", "text"); 
+        newLocationText.setAttribute("id", "location" + locationCount); 
+        // create the corresponding coords hidden text box
+        var newLocationCoords = document.createElement("input"); 
+        newLocationCoords.setAttribute("type", "hidden"); 
+        newLocationCoords.setAttribute("id", "location" + locationCount + "coords");
+        // create the corresponding coords hidden text box
+        var newLocationSaveButton = document.createElement("button");
+        newLocationSaveButton.type = "button";
+        newLocationSaveButton.innerHTML = "Save?";
+        newLocationSaveButton.style.backgroundColor = "red";
+        newLocationSaveButton.setAttribute("id", "location" + locationCount + "save");
+        const currentLocationCount = locationCount;
+        newLocationSaveButton.onclick = function() {saveCoords(currentLocationCount)};
 
-      function generateLiverpoolPlayersBirthLocation() {
-        // set location and add event listeners for the location text boxes
-        for (var i = 1; i < 16; i++) {
-          var element = document.getElementById("location" + i)
-          element.value = liverpoolPlayersBirthList[i][1];
-          addEventListeners(element);
-        } 
-        if (geocoder) {
-          // click the first location to jump map to that location
-          // but only once map (and hence geocoder) has been initialised
-          document.getElementById("location1").click();
+        // Append to the form 
+        form.appendChild(newLocationText);  
+        form.appendChild(newLocationCoords);  
+        form.appendChild(newLocationSaveButton);  
+        addEventListeners(newLocationText);
+      }
+
+      // Remove the last text box
+      function removeLastLocation() {
+        var form = document.getElementById("dynamicForm")
+        var newLocationText = document.getElementById("location" + locationCount)
+        var newLocationCoords = document.getElementById("location" + locationCount + "coords")
+        var newLocationSave = document.getElementById("location" + locationCount + "save")
+        // remove from the form
+        form.removeChild(newLocationText);  
+        form.removeChild(newLocationCoords);  
+        form.removeChild(newLocationSave);
+        locationCount--;
+      }
+
+      // Clear all text boxes (delete all except the first one and clear ir)
+      function clearAll() {
+        for (var i = locationCount; i > 1; i--) {
+          removeLastLocation();
+        }
+        document.getElementById("location1").value = "";
+        document.getElementById("location1coords").value = "";
+        document.getElementById("location1save").innerHTML = "Save?";
+        document.getElementById("location1save").style.backgroundColor = "";
+      }
+
+      // get address from text box with id, then codeAddress() to loopup coords and save them
+      function saveCoords(id) {
+        console.log("Saving Coords for id:" + id);
+        var address = document.getElementById("location" + id).value;
+        if (address) {
+          var dummyElement = {target: {id: "location" + id, value: address}}
+          codeAddress(geocoder, map, dummyElement)
         }
       }
 
-
+      // Lookup address from a text box, move map and save co-ords
       function codeAddress(geocoder, map, element) {
+        var address;
+        if (element) {
+          // if call has a valid element, then get updated address
+          address = element.target.value;
+        }
+        if (!address) {
+          return;
+        }
         geocoder.geocode({'address': address}, function(results, status) {
+          console.log("Address Lookup=" + address);
           if (status === 'OK') {
             map.setCenter(results[0].geometry.location);
             var marker = new google.maps.Marker({
               map: map,
               position: results[0].geometry.location
             });
-            addressCoordsMap[address] = results[0].geometry.location
+            addressCoords = results[0].geometry.location
             console.log("LOCATION=" + results[0].geometry.location);
 
-            // update the hidden coords for the element that triggered the address lookup
             if (element) {
-              document.getElementById(element.target.name + "coords").value = addressCoordsMap[element.target.value];
-              console.log("TARGETCOORDS=" + document.getElementById(element.target.name + "coords").value);
+              var addressElementName = element.target.id;
+              console.log("addressElementName="+addressElementName)
+              document.getElementById(addressElementName + "coords").value = addressCoords;
+              document.getElementById(addressElementName + "save").innerHTML = "&#10004;"; // tick
+              document.getElementById(addressElementName + "save").style.backgroundColor = "green";
+              console.log("TARGETCOORDS=" + document.getElementById(addressElementName + "coords").value);
             }
             
           } else {
@@ -206,17 +233,119 @@ console.log("ppp="+previousGameId)
 
       // add event listeners for the location text boxes
       function addEventListeners(element) {
-        element.addEventListener("input", updateValue);
-        element.addEventListener("click", updateValue);
+        //element.addEventListener("click", updateValue);
+        let timeout = null;
+        element.addEventListener('keyup', function (e) {
+          // Clear timeout if already set to prevent the previous task from executing
+          clearTimeout(timeout);
+          // Make a new timeout
+          timeout = setTimeout(function () {
+              var addressToLookup = e.target.value;
+              if ((addressToLookup != null)  && (addressToLookup != "")) {
+                codeAddress(geocoder, map, e);
+              }
+          }, 1000);
+        });
       }
 
-      function updateValue(e) {
-        address = e.target.value
-        codeAddress(geocoder, map, e);
+      ////////////////////////////////////////////////
+      // START OF AUTO GENERATE LOCATION TEMPLATES
+      ////////////////////////////////////////////////
+      function generateFromPreviousGame(previousGameId) {
+        clearAll();
+        //var previousGameId = document.getElementById("previousGameId").value
+        if (previousGameId) {
+          var url='/api/get-game-details?gameId='+previousGameId
+          fetch(url)
+          .then(response => response.json())
+          .then(function(response) {
+            //console.log(response)
+            for (var i = 1; i < 16; i++) {
+              console.log("a="+response["location"+i])
+              var thisLocation = response["location"+i]
+              if ((thisLocation != null) && (thisLocation != "") && (thisLocation != "undefined")) {
+              var element = document.getElementById("location" + i)
+              if (element == null) {
+                addAnotherLocation();
+                element = document.getElementById("location" + i);
+              }
+                element.value = response["location"+i];
+                var elementcoords = document.getElementById("location" + i + "coords")
+                if (element == null) {
+                  elementcoords.value = response["location" + i + "coords"];
+                }
+                addEventListeners(element);
+              }
+            }
+          });
+        }
       }
 
-      //document.getElementById("play").setAttribute("href", "play-game?gamecode=" + btoa(locationList));
-      //document.getElementById("play").setAttribute("href", "play-game?gamecode=" + gamecode);
+      function generateCapitalCities() {
+        clearAll();
+        // set location and add event listeners for the location text boxes
+        for (var i = 1; i <= 10; i++) {
+          var randomNumber = Math.floor(Math.random() * countryList.length);
+          var element = document.getElementById("location" + i)
+          if (element == null) {
+            addAnotherLocation();
+            element = document.getElementById("location" + i);
+          }
+          element.value = countryList[randomNumber][1] + ", " + countryList[randomNumber][0]
+          //addEventListeners(element);
+          if ((geocoder) && (i == 1)) {
+            // click the first location to jump map to that location
+            // but only once map (and hence geocoder) has been initialised
+            //document.getElementById("location" + i).click();
+            saveCoords(i);
+          }
+        } 
+      }
+
+      function listPreviousQuizzes() {
+        var previousQuizSection = document.getElementById("listPreviousQuizzes")
+        for (var i = 0; i < quizHistory.length; i++) {
+          var br = document.createElement('div');
+          //div.innerHTML = quizHistory[i].date;
+          console.log("test "+ i + ": " +quizHistory[i].id);
+
+          // create the corresponding coords hidden text box
+          var cloneButton = document.createElement("button");
+          cloneButton.type = "button";
+          cloneButton.innerHTML = quizHistory[i].date + ": " + quizHistory[i].description;
+          const currentQuizId = quizHistory[i].id;
+          cloneButton.onclick = function() {generateFromPreviousGame(currentQuizId)};
+
+          // Append to the form 
+          previousQuizSection.appendChild(cloneButton);
+          previousQuizSection.appendChild(br);
+        }
+      }
+
+      function generateLiverpoolPlayersBirthLocation() {
+        clearAll();
+        // set location and add event listeners for the location text boxes
+        for (var i = 0; i < liverpoolPlayersBirthList.length; i++) {
+          var elementID = i+1;
+          var element = document.getElementById("location" + elementID);
+          if (element == null) {
+            addAnotherLocation();
+            element = document.getElementById("location" + elementID);
+          }
+          element.value = liverpoolPlayersBirthList[i][1];
+          addEventListeners(element);
+        } 
+        if (geocoder) {
+          // click the first location to jump map to that location
+          // but only once map (and hence geocoder) has been initialised
+          //document.getElementById("location1").click();
+          saveCoords(1);
+        }
+      }
+      ////////////////////////////////////////////////
+      // END OF AUTO GENERATE LOCATION TEMPLATES
+      ////////////////////////////////////////////////
+
       </script>
 
       <script type="text/javascript">
@@ -224,10 +353,11 @@ console.log("ppp="+previousGameId)
         gamecode = generateString(6).trim();
         document.getElementById("gameId").value=gamecode
         document.getElementById("quizIdDiv").innerHTML="Quiz ID: " + gamecode
-        document.getElementById("play").setAttribute("href", "play-game?gamecode=" + gamecode);
       }
 
       generateGamecode();
+      addAnotherLocation();
+      listPreviousQuizzes();
       </script>
 
 
