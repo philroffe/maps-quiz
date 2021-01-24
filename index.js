@@ -74,18 +74,18 @@ express()
       newBody.timestamp = results.results[0].locations.timestamp;
       newBody.creatorName = results.results[0].locations.creatorName;
       var myLocations = [];
-      var myLocationsCoords = [];
+      var myLocationCoords = [];
       for (i = 0; i < 20; i++) {
         var location = results.results[0].locations["location"+i];
         var locationCoords = results.results[0].locations["location"+i+"coords"];
         if (location) {
           myLocations.push(location);
-          myLocationsCoords.push(locationCoords);
+          myLocationCoords.push(locationCoords);
         }
       }
       if (myLocations.length > 0) {
         newBody.myLocations = myLocations;
-        newBody.myLocationsCoords = myLocationsCoords;
+        newBody.myLocationCoords = myLocationCoords;
         var locations = JSON.stringify(newBody);
         console.log("Writing to DB: " + locations);
         //const client = await pool.connect();
