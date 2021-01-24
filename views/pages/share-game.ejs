@@ -3,8 +3,6 @@
 <head>
 
 	<script type="text/javascript">
-//gameId = res.body.gameId;
-//gameId = results.body.gameId;
 	function copyText() {
 		/* Get the text field */
 		var copyText = document.getElementById("gameId");
@@ -25,14 +23,20 @@
 	Game saved!
 	<p>
 		Share this link with your friends...
-		<input type="text" id="gameId" name="gameId" value="<%= gameId %>" readonly>
+		<br><input type="text" id="gameId" name="gameId" readonly size=40 maxsize=40>
 		<button onclick="copyText()">Copy text</button>
 
 		<div class="share"></div>
 	</p>
 	<p>
-		and then <a href="./play-game?gameId=<%= gameId %>">Play now!</a>
+		and then <a href="" id="playGame">Play now!</a>
 	</p>
+
+	<script type="text/javascript">
+      var playURL = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/play-game?gameId=<%= gameId %>" ;
+      document.getElementById("gameId").value = playURL;
+      document.getElementById("playGame").href = playURL;
+    </script>
 </body>
 
 </html>

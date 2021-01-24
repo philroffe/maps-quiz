@@ -92,7 +92,8 @@
         </div>
         <br>
           <p>Choose Quiz Locations:<br>
-            <span id="dynamicForm"></span>
+            
+           <div id="dynamicInput"></div>
               <br><button type="button" onclick="addAnotherLocation();">(+) Add Location</button>
                   <button type="button" onclick="removeLastLocation();">(-) Remove Location</button>
               <br><br><input type="submit" value="Submit and Play Game..."><br>
@@ -136,15 +137,18 @@
           // set a max list of locations (otherwise the results page will be too messy and slow)
           return;
         }
-        var form = document.getElementById("dynamicForm")
+        var form = document.getElementById("dynamicInput")
         // create a location text box
         var newLocationText = document.createElement("input"); 
         newLocationText.setAttribute("type", "text"); 
         newLocationText.setAttribute("id", "location" + locationCount); 
+        newLocationText.setAttribute("name", "myLocations[]"); 
+        
         // create the corresponding coords hidden text box
         var newLocationCoords = document.createElement("input"); 
         newLocationCoords.setAttribute("type", "hidden"); 
         newLocationCoords.setAttribute("id", "location" + locationCount + "coords");
+        newLocationCoords.setAttribute("name", "myLocationsCoords[]"); 
         // create the corresponding coords hidden text box
         var newLocationSaveButton = document.createElement("button");
         newLocationSaveButton.type = "button";
@@ -163,7 +167,7 @@
 
       // Remove the last text box
       function removeLastLocation() {
-        var form = document.getElementById("dynamicForm")
+        var form = document.getElementById("dynamicInput")
         var newLocationText = document.getElementById("location" + locationCount)
         var newLocationCoords = document.getElementById("location" + locationCount + "coords")
         var newLocationSave = document.getElementById("location" + locationCount + "save")
@@ -307,7 +311,7 @@
         for (var i = 0; i < quizHistory.length; i++) {
           var br = document.createElement('div');
           //div.innerHTML = quizHistory[i].date;
-          console.log("test "+ i + ": " +quizHistory[i].id);
+          //console.log("test "+ i + ": " + quizHistory[i].id);
 
           // create the corresponding coords hidden text box
           var cloneButton = document.createElement("button");
@@ -356,8 +360,9 @@
       }
 
       generateGamecode();
-      addAnotherLocation();
       listPreviousQuizzes();
+      // add the first text box to get started
+      addAnotherLocation();
       </script>
 
 

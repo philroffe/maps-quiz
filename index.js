@@ -59,6 +59,49 @@ express()
       res.send("Error " + err);
     }
     })
+  .get('/convert-game', async (req, res) => {
+    var gameId = req.query.gameId;
+    console.log('Got GET gameId:', gameId);
+    try {
+      const client = await pool.connect();
+      const result = await client.query(`SELECT locations FROM games WHERE gameid='${gameId}'`);
+      //const results = { 'results': (result) ? result.rows : null};
+      const results = { 'gameId': gameId, 'results': result.rows};
+      console.log('Got DB results:', results.results[0].locations);
+
+      var newBody = {};
+      newBody.gameId = gameId;
+      newBody.timestamp = results.results[0].locations.timestamp;
+      newBody.creatorName = results.results[0].locations.creatorName;
+      var myLocations = [];
+      var myLocationsCoords = [];
+      for (i = 0; i < 20; i++) {
+        var location = results.results[0].locations["location"+i];
+        var locationCoords = results.results[0].locations["location"+i+"coords"];
+        if (location) {
+          myLocations.push(location);
+          myLocationsCoords.push(locationCoords);
+        }
+      }
+      if (myLocations.length > 0) {
+        newBody.myLocations = myLocations;
+        newBody.myLocationsCoords = myLocationsCoords;
+        var locations = JSON.stringify(newBody);
+        console.log("Writing to DB: " + locations);
+        //const client = await pool.connect();
+        const writeresult = await client.query(`UPDATE games SET locations = '${locations}' WHERE gameid = '${gameId}'`);
+        const writeresults = { 'gameId': gameId, 'body': locations};
+        console.log("Done: " + writeresult);
+        res.render('pages/share-game', writeresults );
+      } else {
+        console.log("ERROR - No locations found for id " + gameid);
+      }
+      client.release();
+    } catch (err) {
+      console.error(err);
+      res.send("Error " + err);
+    }
+  })
   .get('/view-results', async (req, res) => {
     console.log('Got GET query:', req.query);
     var gameId = req.query.gameId;
