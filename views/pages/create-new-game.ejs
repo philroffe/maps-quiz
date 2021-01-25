@@ -105,7 +105,7 @@
           <div id="bottom">
             <p>Clone a previous game:
             <span id="listPreviousQuizzes"></span>
-            <br><button type="button" onclick="generateFromPreviousGame();">Previous Game ID:</button>
+            <br><button type="button" onclick="generateFromPreviousGameText();">Previous Game ID:</button>
             <input type="text" id="previousGameId" name="previousGameId" maxlength="6" size="6" data-lpignore="true">
           <p>Generate from template:
             <br><button type="button" onclick="generateCapitalCities();">10 Cities of the world</button>
@@ -255,32 +255,49 @@
       ////////////////////////////////////////////////
       // START OF AUTO GENERATE LOCATION TEMPLATES
       ////////////////////////////////////////////////
+      function generateFromPreviousGameText() {
+        var previousGameId = document.getElementById("previousGameId").value;
+            console.log("response="+previousGameId)
+        generateFromPreviousGame(previousGameId);
+      }
+
       function generateFromPreviousGame(previousGameId) {
         clearAll();
-        //var previousGameId = document.getElementById("previousGameId").value
         if (previousGameId) {
           var url='/api/get-game-details?gameId='+previousGameId
           fetch(url)
           .then(response => response.json())
           .then(function(response) {
-            //console.log(response)
-            for (var i = 1; i < 16; i++) {
-              console.log("a="+response["location"+i])
-              var thisLocation = response["location"+i]
+            //console.log(response);
+            savedLocations = response["myLocations"]
+            if (!savedLocations) {
+              console.log("Error loading " + previousGameId);
+              return;
+            }
+            savedLocationCoords = response["myLocationCoords"]
+            for (var i = 0; i < savedLocations.length; i++) {
+              var elementID = i+1;
+              var thisLocation = savedLocations[i];
+              var thisLocationCoords = savedLocationCoords[i];
               if ((thisLocation != null) && (thisLocation != "") && (thisLocation != "undefined")) {
-              var element = document.getElementById("location" + i)
-              if (element == null) {
-                addAnotherLocation();
-                element = document.getElementById("location" + i);
-              }
-                element.value = response["location"+i];
-                var elementcoords = document.getElementById("location" + i + "coords")
+                // set the location
+                var element = document.getElementById("location" + elementID)
                 if (element == null) {
-                  elementcoords.value = response["location" + i + "coords"];
+                  // add a new text box when needed
+                  addAnotherLocation();
+                  element = document.getElementById("location" + elementID);
+                }
+                element.value = thisLocation;
+                // now set the coords
+                var elementcoords = document.getElementById("location" + elementID + "coords")
+                if (element == null) {
+                  elementcoords.value = thisLocationCoords;
                 }
                 addEventListeners(element);
               }
             }
+          }).catch(function() {
+            console.log("API/DB error trying to lookup " + previousGameId + " - does it exist?");
           });
         }
       }
