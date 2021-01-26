@@ -10,14 +10,12 @@
   <link rel="stylesheet" type="text/css" href="https://nav.files.bbci.co.uk/orbit/ece9cb048f668bbc4cc6214737a6cdb6/css/orb-ltr.min.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="/stylesheets/play-game.css" />
 
-  <!-- <script src="questions.js"></script> -->
-
   <script>
   //parse the database results
   var saveUrl = ""
   var gameId = "<%= results[0].locations.gameId %>";
   var questions = <%- JSON.stringify(results[0].locations.myLocations) %>;
-
+  var numberCompleted = 0;
 
   function saveResult() {
     //const url = "http://localhost:5000/save-result?gameId=" + gameId;
@@ -25,23 +23,39 @@
     fetch(saveurl, options)
      .then( res => res.json() )
      .then( data => console.log(data) );
-    //}
-    // const body = { gameId: gameId };     
-    // var obj = { name: "John", age: 30, city: "New York" };
+     
+    // update the dropdown to show it has been submitted successfully
+    var questioninput= document.getElementById('question');
+    question = questioninput.options[questioninput.selectedIndex].text;
+    if (!question.endsWith(" (Completed)")) {
+      questioninput.options[questioninput.selectedIndex].text = question + " (Completed)";
+      numberCompleted++;
+    }
 
-    //  fetch('http://localhost:5000/save-result', { method: 'POST', body: 'a=1' })
-    //    .then(res => res.json()) // expecting a json response
-    //    .then(json => console.log(json));
+    var statusText = "Completed " + numberCompleted + " of " + questions.length;
+    document.getElementById('statusText').innerHTML = statusText;
 
-    // fetch('http://localhost:5000/save-result', {
-    //         method: 'post',
-    //         body:    JSON.stringify(obj),
-    //         headers: { 'Content-Type': 'application/json' },
-    //     })
-    //     .then(res => res.json())
-    //     .then(json => console.log(json));
-    //   console.log(JSON.stringify(body))
-      }
+    // hide submit button for 1 secs to show pressed successfully, then reshow
+    var linkurl = document.getElementById('linkurl');
+
+    // auto move to next option
+    if (questioninput.selectedIndex < questions.length) {
+      questioninput.selectedIndex++;
+      // recentre marker and map
+      var pos = new google.maps.LatLng(51.4975941, -0.0803232);
+      marker.setPosition(pos);
+      map.setCenter(pos);
+      map.setZoom(5);
+      // flash submit button
+      linkurl.style.visibility = "hidden"; 
+      setTimeout(() => linkurl.style.visibility = "visible", 1000);
+    } else {
+      // go back to top
+      questioninput.selectedIndex = 0;
+      // hide submit button
+      linkurl.style.visibility = "hidden"; 
+    }
+  }
   </script>
 
   <script type="text/javascript"
@@ -89,7 +103,7 @@
     //};
 
     var pos = new google.maps.LatLng(51.4975941, -0.0803232);
-    var marker = new google.maps.Marker({
+    marker = new google.maps.Marker({
       map: map,
       position: pos,
       title: 'Drag to location, and click submit when you\'re ready',
@@ -124,6 +138,7 @@
     var questioninput= document.getElementById('question');
     questioninput.onchange= function() {
       question = questioninput.options[questioninput.selectedIndex].text;
+      question = question.replace(" (Completed)", "");
       updateSubmitURL();
     };
 
@@ -157,13 +172,17 @@
 
 
   // polulate the dropdown list of questions
+  console.log("Playing game: " + gameId + " Questions:" + questions);
   for (i = 0; i < questions.length; i++) {
     if ((questions[i] != null) && (questions[i] != "") && (questions[i] != "undefined")) {
       var select = document.getElementById("question");
       select.options[select.options.length] = new Option(questions[i]);
-      console.log(questions[i])
+      //console.log(questions[i]);
     }
   }
+
+  var statusText = "Completed " + numberCompleted + " of " + questions.length;
+  document.getElementById('statusText').innerHTML = statusText;
 
 }
 
@@ -183,6 +202,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
     </select>
     <p>
       <button id="linkurl" class="btn" onclick="saveResult()">Submit</button>
+      <div id="statusText">Completed 0 of 0</div>
     </h3>
   </div>
   <div id="latbox"></div>

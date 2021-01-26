@@ -3,6 +3,9 @@ html, body {
 	margin: 0px;
 	padding: 0px
 }
+body {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Code2000, sans-serif; 
+}
 #map-canvas {
 	height: 80%;
 	margin: 0px;
