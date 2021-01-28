@@ -18,7 +18,9 @@
   var numberCompleted = 0;
 
   function saveResult() {
-    //const url = "http://localhost:5000/save-result?gameId=" + gameId;
+    // get updated values to update the saveurl
+    updateSaveURLPreSubmit();
+
     const options = {};
     fetch(saveurl, options)
      .then( res => res.json() )
@@ -48,13 +50,39 @@
       map.setZoom(5);
       // flash submit button
       linkurl.style.visibility = "hidden"; 
-      setTimeout(() => linkurl.style.visibility = "visible", 1000);
+      setTimeout(() => linkurl.style.visibility = "visible", 500);
     } else {
       // go back to top
       questioninput.selectedIndex = 0;
       // hide submit button
       linkurl.style.visibility = "hidden"; 
     }
+    // update the submit URL in preparation for next question as modified
+    //updateSubmitURL();
+  }
+
+    function updateSaveURLPreSubmit() {
+      //get the lat and long
+      document.getElementById("latbox").innerHTML=marker.getPosition().lat();
+      document.getElementById("longbox").innerHTML=marker.getPosition().lng();
+      var laturl=marker.getPosition().lat();
+      var lngurl=marker.getPosition().lng();
+      // get the person name
+      var person = document.getElementById('fullname').value;
+      if (person != null) {
+        person.trim().replace(/ /g, '').replace(/\'/g, '');
+      }
+      // get the questions
+      var questioninput= document.getElementById('question');
+      var question = questioninput.options[questioninput.selectedIndex].text;
+      question = question.replace(" (Completed)", "");
+
+      // combine as a URL
+      var linkurl=baseurl.concat(laturl,comma,lngurl,"&question=",question,"&person=",person);
+      saveurl=baseurl.concat(person,"_",question,"&gameId=",gameId,"&resultuser=",person,"&resultlocationname=",question,"&resultcoordinates=",laturl,comma,lngurl);
+
+      //store the url
+      document.getElementById("linkurl").href=saveurl;
   }
   </script>
 
@@ -95,13 +123,6 @@
     var question = ""
     document.getElementById('question').selectedIndex = 0;
 
-
-    //var questioninput= document.getElementById('question');
-    //    questioninput.onchange= function() {
-    //    question = questioninput.options[questioninput.selectedIndex].text;
-    //    updateSubmitURL();
-    //};
-
     var pos = new google.maps.LatLng(51.4975941, -0.0803232);
     marker = new google.maps.Marker({
       map: map,
@@ -134,6 +155,10 @@
       person = fullnameinput.value;
       updateSubmitURL();
     };
+    fullnameinput.onclick=fullnameinput.onclick= function() {
+      person = fullnameinput.value;
+      updateSubmitURL();
+    };
 
     var questioninput= document.getElementById('question');
     questioninput.onchange= function() {
@@ -143,50 +168,36 @@
     };
 
     function updateSubmitURL() {
-      document.getElementById("latbox").innerHTML=marker.getPosition().lat();
-      document.getElementById("longbox").innerHTML=marker.getPosition().lng();
-      var laturl=marker.getPosition().lat();
-      var lngurl=marker.getPosition().lng();
-      if (person != null) {
-        person.trim().replace(/ /g, '').replace(/\'/g, '');
+      // hide the submit link if it's not
+      if (question == null || question == "Select..." || question == "") {
+        document.getElementById("linkurl").href="#ChooseQuestion";
+        document.getElementById("linkurl").style.visibility = "hidden"; 
+      } else if (person == null || person == "") {
+        document.getElementById("linkurl").href="#AddName";
+        document.getElementById("linkurl").style.visibility = "hidden"; 
+      } else {
+        document.getElementById("linkurl").style.visibility = "visible"; 
       }
-      var linkurl=baseurl.concat(laturl,comma,lngurl,"&question=",question,"&person=",person);
-      saveurl=baseurl.concat(person,"_",question,"&gameId=",gameId,"&resultuser=",person,"&resultlocationname=",question,"&resultcoordinates=",laturl,comma,lngurl);
-      //resultid=Phil_Sunderland&gameId=638176&resultuser=Phil&resultlocationname=Sunderland,UK&resultcoordinates=0,2'
-
-      document.getElementById("linkurl").href=saveurl;
-      document.getElementById("linkurl").style.visibility = "visible"; 
-
-    // hide the submit link if it's not
-    if (question == null || question == "Select..." || question == "") {
-      document.getElementById("linkurl").href="#ChooseQuestion";
-      document.getElementById("linkurl").style.visibility = "hidden"; 
     }
-    if (person == null || person == "") {
-      document.getElementById("linkurl").href="#AddName";
-      document.getElementById("linkurl").style.visibility = "hidden"; 
-    }
-    
-  }
-  updateSubmitURL();
+    updateSubmitURL();
 
 
-  // polulate the dropdown list of questions
-  console.log("Playing game: " + gameId + " Questions:" + questions);
-  for (i = 0; i < questions.length; i++) {
-    if ((questions[i] != null) && (questions[i] != "") && (questions[i] != "undefined")) {
-      var select = document.getElementById("question");
-      select.options[select.options.length] = new Option(questions[i]);
-      //console.log(questions[i]);
+    // polulate the dropdown list of questions
+    console.log("Playing game: " + gameId + " Questions:" + questions);
+    for (i = 0; i < questions.length; i++) {
+      if ((questions[i] != null) && (questions[i] != "") && (questions[i] != "undefined")) {
+        var select = document.getElementById("question");
+        select.options[select.options.length] = new Option(questions[i]);
+        //console.log(questions[i]);
+      }
     }
+
+    var statusText = "Completed " + numberCompleted + " of " + questions.length;
+    document.getElementById('statusText').innerHTML = statusText;
+  
   }
 
-  var statusText = "Completed " + numberCompleted + " of " + questions.length;
-  document.getElementById('statusText').innerHTML = statusText;
-
-}
-
-google.maps.event.addDomListener(window, 'load', initialize);
+  google.maps.event.addDomListener(window, 'load', initialize);
 
 </script>
 
