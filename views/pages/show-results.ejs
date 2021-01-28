@@ -39,7 +39,7 @@
   <script type="text/javascript">
   var gameId = "<%= gamesDBResult[0].locations.gameId %>";
   var questions = <%- JSON.stringify(gamesDBResult[0].locations.myLocations) %>;
-  var questionCoords = <%- JSON.stringify(gamesDBResult[0].locations.myLocationCoords) %>;
+  var questionCoords= = <%- JSON.stringify(gamesDBResult[0].locations.myLocationCoords) %>;
   //console.log(questions)  
 
   var resultLocations = [
@@ -181,7 +181,7 @@
     </script>
 
       <script async defer
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtf3cvpiBnQrcjL0GUb1IkGkqLRhMQz7Y&libraries=geometry&callback=initMap">
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtf3cvpiBnQrcjL0GUb1IkGkqLRhMQz7Y&libraries=geometry&region=GB&callback=initMap">
       </script>
   </body>
   </html>

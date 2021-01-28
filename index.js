@@ -102,25 +102,25 @@ express()
       res.send("Error " + err);
     }
   })
-  .get('/view-results', async (req, res) => {
-    console.log('Got GET query:', req.query);
-    var gameId = req.query.gameId;
-    var gameName = req.query.gameName;
-    console.log('gameId:', gameId);
-    console.log('gameName:', gameName);
-    try {
-      const client = await pool.connect();
-      const result = await client.query(`INSERT INTO games(gameid, gamecode) VALUES ('${gameId}', '${gameName}')`);
-      const results = { 'results': (result) ? result.rows : null};
-      console.log('Got DB results:', results);
-      //res.sendStatus(200);
-      res.render('pages/play', results );
-      //client.release();
-    } catch (err) {
-      console.error(err);
-      res.send("Error " + err);
-    }
-  })
+  // .get('/view-results', async (req, res) => {
+  //   console.log('Got GET query:', req.query);
+  //   var gameId = req.query.gameId;
+  //   var gameName = req.query.gameName;
+  //   console.log('gameId:', gameId);
+  //   console.log('gameName:', gameName);
+  //   try {
+  //     const client = await pool.connect();
+  //     const result = await client.query(`INSERT INTO games(gameid, gamecode) VALUES ('${gameId}', '${gameName}')`);
+  //     const results = { 'results': (result) ? result.rows : null};
+  //     console.log('Got DB results:', results);
+  //     //res.sendStatus(200);
+  //     res.render('pages/play', results );
+  //     //client.release();
+  //   } catch (err) {
+  //     console.error(err);
+  //     res.send("Error " + err);
+  //   }
+  // })
   .post('/save-game', async (req, res) => {
     console.log('Got POST body:', req.body);
     var gameId = req.body.gameId;
