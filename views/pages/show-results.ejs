@@ -27,19 +27,17 @@
    font-size: 1.2em;
  }
  </style>
-
 </head> 
+
 <body>
 	<div id="map" style="width: 1600px; height: 1600px;"></div>
 	<!--<div id="map" style="width: 1600px; height: 1600px;"></div>-->
-	Try fullscreen ^
+	<!--Try fullscreen ^-->
 
-  <!--<script src="questions.js"></script> -->
-  <!--<script src="location-results.js"></script> -->
   <script type="text/javascript">
   var gameId = "<%= gamesDBResult[0].locations.gameId %>";
   var questions = <%- JSON.stringify(gamesDBResult[0].locations.myLocations) %>;
-  var questionCoords= = <%- JSON.stringify(gamesDBResult[0].locations.myLocationCoords) %>;
+  var questionCoords= <%- JSON.stringify(gamesDBResult[0].locations.myLocationCoords) %>;
   //console.log(questions)  
 
   var resultLocations = [
@@ -47,8 +45,6 @@
         ["<%= r.resultid %>", <%= r.resultcoordinates.replace("(", "").replace(")", "").split(',')[0] %>, <%= r.resultcoordinates.replace("(", "").replace(")", "").split(',')[1] %>],
     <% }); %>
     ];
-
-
   </script>
 
   <script type="text/javascript">
@@ -60,19 +56,19 @@
       zoom: 3,
       center: {lat: -34.397, lng: 150.644},
       mapTypeId: google.maps.MapTypeId.ROADMAP
-  });
-  geocoder = new google.maps.Geocoder();
-  //codeAddress(geocoder, map, null);
+    });
+    geocoder = new google.maps.Geocoder();
+    //codeAddress(geocoder, map, null);
 
-  var infowindow = new google.maps.InfoWindow();
-  var marker, i;
+    var infowindow = new google.maps.InfoWindow();
+    var marker, i;
 
-  var locationMarker = new Map();
-  for (i = 0; i < questions.length; i++) {
-    var lat = questionCoords[i].replace("(", "").replace(")", "").split(',')[0];
-    var lng = questionCoords[i].replace("(", "").replace(")", "").split(',')[1];
+    var locationMarker = new Map();
+    for (i = 0; i < questions.length; i++) {
+      var lat = questionCoords[i].replace("(", "").replace(")", "").split(',')[0];
+      var lng = questionCoords[i].replace("(", "").replace(")", "").split(',')[1];
 
-    marker = new google.maps.Marker({
+      marker = new google.maps.Marker({
     position: new google.maps.LatLng(lat, lng),
     map: map,
     icon: "beachflag.png"
@@ -82,69 +78,46 @@
     //locationMarker.set(questions[i][0].replaceAll(" ", ""), marker);
   }
 
-
-  // DOES NOT QUITE WORK...
-  // 1. API EXCEED ERROR
-  // 2. addressCoordsMap seems undefined
-  // for (i = 0; i < questions.length; i++) {
-  //   // generate Lat/Lng from the question location
-  //   codeAddress(geocoder, map, questions[i][0]);
-  //   var locationCoords = addressCoordsMap[questions[i][0]]
-  //   console.log("locationMarker=" + questions[i][0] + "____" + locationCoords + "----" + questions[i][1] + "," + questions[i][2]);
-
-  //   marker = new google.maps.Marker({
-  //   position: new google.maps.LatLng(questions[i][1], questions[i][2]),
-  //   map: map,
-  //   icon: "beachflag.png"
-  //   });
-  //   locationMarker.set(questions[i][0], marker);
-  //   //console.log("locationMarker=" + questions[i][0] + "____" + marker);
-  // }
-
-
   // Display the results as markers
   var count_names = 0;
   var names_map = new Map();
   for (i = 0; i < resultLocations.length; i++) {  
-
     var name = resultLocations[i][0].split("_")[0]
     var name_number = 1
     if (names_map[name] != null) {
-     name_number = names_map[name];
-   } else {
-     count_names += 1;
-     name_number = count_names;
-     names_map[name] = count_names;
-   }
-   var icon_image = "https://maps.google.com/mapfiles/kml/paddle/" + name_number + ".png"
-
-   marker = new google.maps.Marker({
-    position: new google.maps.LatLng(resultLocations[i][1], resultLocations[i][2]),
-    map: map,
-    label: name,
-	//icon: icon_image
-})
-   //console.log("RESULTS lat=" + resultLocations[i][1] + "+++ lng=" + resultLocations[i][2])
-;
-
-   var question = resultLocations[i][0].split("_")[1]
-   //console.log("loc=" + resultLocations[i][0] + "+++ question=" + question)
-   questionMarker = locationMarker.get(question)
-
-   var line = new google.maps.Polyline({path: [marker.getPosition(), questionMarker.getPosition()], map: map});
-      //var polylineLength = google.maps.geometry.spherical.computeLength(line.getPath()) / 1000;
-      var polylineLength = haversine_distance(marker, questionMarker);
-      resultLocations[i][2] = polylineLength;
-      //console.log("errorish:" + question + " _____ " + questionMarker + "----" + polylineLength + "====" + resultLocations[i][2] + "==" + name)
-      console.log("Location=" + question + " Distance=" + resultLocations[i][2] + " Name=" + name)
-
-      google.maps.event.addListener(marker, 'click', (function(marker, i) {
-        return function() {
-          infowindow.setContent(resultLocations[i][0] + " (" + Math.round(resultLocations[i][2]) + " miles away)");
-          infowindow.open(map, marker);
-        }
-      })(marker, i));
+      name_number = names_map[name];
+    } else {
+      count_names += 1;
+      name_number = count_names;
+      names_map[name] = count_names;
     }
+    var icon_image = "https://maps.google.com/mapfiles/kml/paddle/" + name_number + ".png"
+
+    marker = new google.maps.Marker({
+      position: new google.maps.LatLng(resultLocations[i][1], resultLocations[i][2]),
+      map: map,
+      label: name,
+	    //icon: icon_image
+    });
+
+    var question = resultLocations[i][0].split("_")[1]
+    //console.log("loc=" + resultLocations[i][0] + "+++ question=" + question)
+    questionMarker = locationMarker.get(question)
+
+    var line = new google.maps.Polyline({path: [marker.getPosition(), questionMarker.getPosition()], map: map});
+    //var polylineLength = google.maps.geometry.spherical.computeLength(line.getPath()) / 1000;
+    var polylineLength = haversine_distance(marker, questionMarker);
+    resultLocations[i][2] = polylineLength;
+    //console.log("errorish:" + question + " _____ " + questionMarker + "----" + polylineLength + "====" + resultLocations[i][2] + "==" + name)
+    console.log("Location=" + question + " Distance=" + resultLocations[i][2] + " Name=" + name)
+
+    google.maps.event.addListener(marker, 'click', (function(marker, i) {
+      return function() {
+        infowindow.setContent(resultLocations[i][0] + " (" + Math.round(resultLocations[i][2]) + " miles away)");
+        infowindow.open(map, marker);
+      }
+    })(marker, i));
+  }
 }
 
   function haversine_distance(mk1, mk2) {
@@ -157,31 +130,10 @@
     var d = 2 * R * Math.asin(Math.sqrt(Math.sin(difflat/2)*Math.sin(difflat/2)+Math.cos(rlat1)*Math.cos(rlat2)*Math.sin(difflon/2)*Math.sin(difflon/2)));
     return d;
   }
+  </script>
 
-//////////////////////////
-////////////////////////
-//////////////////////
-
-      function codeAddress(geocoder, map, address) {
-        geocoder.geocode({'address': address}, function(results, status) {
-          if (status === 'OK') {
-            map.setCenter(results[0].geometry.location);
-            var marker = new google.maps.Marker({
-              map: map,
-              position: results[0].geometry.location
-            });
-            addressCoordsMap[address] = results[0].geometry.location
-            console.log("LOCATION=" + results[0].geometry.location);
-          } else {
-            alert('Geocode was not successful for the following reason: ' + status);
-          }
-        });
-      }
-
-    </script>
-
-      <script async defer
+  <script async defer
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtf3cvpiBnQrcjL0GUb1IkGkqLRhMQz7Y&libraries=geometry&region=GB&callback=initMap">
-      </script>
-  </body>
-  </html>
+  </script>
+</body>
+</html>
