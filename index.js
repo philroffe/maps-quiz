@@ -144,7 +144,7 @@ express()
     var resultuser = req.query.resultuser;
     var resultlocationname = req.query.resultlocationname;
     var resultcoordinates = req.query.resultcoordinates;
-    var resultid = resultuser + "_" + resultlocationname;
+    var resultid = resultuser + "_" + resultlocationname + "_" + gameId;
     try {
       const client = await pool.connect();
       const result = await client.query(`INSERT INTO 
