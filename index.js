@@ -12,6 +12,17 @@ const pool = new Pool({
   }
 });
 
+// By default, the client will authenticate using the service account file
+// specified by the GOOGLE_APPLICATION_CREDENTIALS environment variable and use
+// the project specified by the GOOGLE_CLOUD_PROJECT environment variable. See
+// https://github.com/GoogleCloudPlatform/google-cloud-node/blob/master/docs/authentication.md
+// These environment variables are set automatically on Google App Engine
+const Firestore = require('@google-cloud/firestore');
+const firestore = new Firestore({
+  projectId: 'quiz-1-map-distance-quiz',
+  keyFilename: './keyfile.json',
+});
+
 express()
   .use(express.static(path.join(__dirname, 'public')))
   .use(bodyParser.urlencoded({ extended: true }))
@@ -31,14 +42,12 @@ express()
     var gameId = req.query.gameId;
     console.log('gameId:', gameId);
     try {
-      const client = await pool.connect();
-      const result = await client.query(`SELECT locations FROM games WHERE gameid='${gameId}'`);
-      const results = { 'results': (result) ? result.rows : null};
-      console.log('Got DB results:', results.results[0].locations);
-      res.send(results.results[0].locations);
+      // get the initial questions
+      const questionsDoc = await firestore.collection("games_" + gameId).doc('_questions').get();
+      console.log('Got DB results:', questionsDoc.data());
+      res.send(questionsDoc.data().locations);
       //res.sendStatus(200);
       //res.render('pages/play', results );
-      client.release();
     } catch (err) {
       console.error(err);
       res.send("Error " + err);
@@ -48,12 +57,8 @@ express()
     var gameId = req.query.gameId;
     console.log('Got GET gameId:', gameId);
     try {
-      const client = await pool.connect();
-      const result = await client.query(`SELECT locations FROM games WHERE gameid='${gameId}'`);
-      const results = { 'results': (result) ? result.rows : null};
-      console.log('Got DB results:', results.results[0].locations);
-      res.render('pages/play-game', results );
-      client.release();
+      const doc = await firestore.collection("games_" + gameId).doc('_questions').get();
+      res.render('pages/play-game', {gameId: gameId, locations: doc.data().locations });
     } catch (err) {
       console.error(err);
       res.send("Error " + err);
@@ -125,14 +130,16 @@ express()
     console.log('Got POST body:', req.body);
     var gameId = req.body.gameId;
     req.body.timestamp = new Date().toString();
-    var locations = JSON.stringify(req.body);
+    var locations = req.body;
     try {
-      const client = await pool.connect();
-      const result = await client.query(`INSERT INTO games(gameid, locations) VALUES ('${gameId}', '${locations}')`);
-      const results = { 'gameId': gameId, 'body': req.body};
+      const gamedetails_new = { gameId: gameId, locations: locations };
+      const docRef = firestore.collection("games_" + gameId).doc("_questions");
+      await docRef.set(gamedetails_new);
+      //console.log('Created DB file');
+
       //res.sendStatus(200);
+      const results = { 'gameId': gameId, 'body': req.body};
       res.render('pages/share-game', results );
-      client.release();
     } catch (err) {
       console.error(err);
       res.send("Error " + err);
@@ -141,22 +148,16 @@ express()
   .get('/save-result', async (req, res) => {
     console.log('Got GET query:', req.query);
     var gameId = req.query.gameId;
-    var resultuser = req.query.resultuser;
-    var resultlocationname = req.query.resultlocationname;
-    var resultcoordinates = req.query.resultcoordinates;
-    var resultid = resultuser + "_" + resultlocationname + "_" + gameId;
+    var resultUser = req.query.resultuser;
+    var resultLocationName = req.query.resultlocationname;
+    var resultCoordinates = req.query.resultcoordinates;
+    var resultId = resultUser + "_" + resultLocationName + "_" + gameId;
     try {
-      const client = await pool.connect();
-      const result = await client.query(`INSERT INTO 
-        gameresults(resultid, gameid, resultuser, resultlocationname, resultcoordinates) 
-        VALUES ('${resultid}', '${gameId}', '${resultuser}', '${resultlocationname}', '${resultcoordinates}')
-        ON CONFLICT (resultid) DO UPDATE 
-          SET resultcoordinates = '${resultcoordinates}';`)
-      const results = { 'results': (result) ? result.rows : null};
-      console.log('Got DB results:', results);
+      const gameResults = { resultId: resultId, gameId: gameId, resultUser: resultUser, resultLocationName: resultLocationName, resultCoordinates: resultCoordinates };
+      const docRef = firestore.collection("games_" + gameId).doc("results_" + resultUser + "_" + resultLocationName);
+      await docRef.set(gameResults);
       //res.sendStatus(200);
       res.json({'result': 'OK'})
-      client.release();
     } catch (err) {
       console.error(err);
       res.send("Error " + err);
@@ -166,15 +167,22 @@ express()
     var gameId = req.query.gameId;
     console.log('/show-results Got GET gameId:', gameId);
     try {
-      const client = await pool.connect();
-      const gamesDBResult = await client.query(`SELECT * FROM games WHERE gameid='${gameId}'`);
-      const resultsDBResult = await client.query(`SELECT * FROM gameresults WHERE gameid='${gameId}'`);
-      const results = { 'gamesDBResult': (gamesDBResult) ? gamesDBResult.rows : null,
-        'resultsDBResult': (resultsDBResult) ? resultsDBResult.rows : null};
-      //console.log('Got DB results:', results.results[0].locations);
-      console.log('Got DB results:', results);
-      res.render('pages/show-results', results );
-      client.release();
+      // get the initial questions
+      const questionsDoc = await firestore.collection("games_" + gameId).doc('_questions').get();
+      // get the player results
+      const resultsDBData = await firestore.collection("games_" + gameId).where('resultId', '>=', gameId).get();
+      //console.log('Got DB results:', resultsData);
+      var results = {}
+      resultsDBData.forEach((doc) => {
+        if (doc.id != "_questions") {
+          results[doc.data().resultId] = doc.data();
+          //console.log('Added Result' + doc.data().resultId);
+        }
+      });
+
+      var gameData = { gameId: gameId, locations: questionsDoc.data().locations
+        , myLocations: questionsDoc.data().myLocations, resultsData: results };
+      res.render('pages/show-results', gameData );
     } catch (err) {
       console.error(err);
       res.send("Error " + err);

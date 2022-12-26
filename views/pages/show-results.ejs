@@ -35,16 +35,24 @@
 	<!--Try fullscreen ^-->
 
   <script type="text/javascript">
-  var gameId = "<%= gamesDBResult[0].locations.gameId %>";
-  var questions = <%- JSON.stringify(gamesDBResult[0].locations.myLocations) %>;
-  var questionCoords= <%- JSON.stringify(gamesDBResult[0].locations.myLocationCoords) %>;
-  //console.log(questions)  
+    var gameId =  JSON.parse("<%= JSON.stringify(gameId) %>".replace(/&#34;/g, '"'));
+    var questions =  JSON.parse("<%= JSON.stringify(locations.myLocations) %>".replace(/&#34;/g, '"'));
+    var questionCoords =  JSON.parse("<%= JSON.stringify(locations.myLocationCoords) %>".replace(/&#34;/g, '"'));
+    var resultsData =  JSON.parse("<%= JSON.stringify(resultsData) %>".replace(/&#34;/g, '"'));
 
-  var resultLocations = [
-    <% resultsDBResult.forEach(function(r) { %>
-        ["<%= r.resultid %>", <%= r.resultcoordinates.replace("(", "").replace(")", "").split(',')[0] %>, <%= r.resultcoordinates.replace("(", "").replace(")", "").split(',')[1] %>],
-    <% }); %>
-    ];
+    //console.log("gameId=" + gameId);
+    //console.log("questions=" + questions);
+    //console.log("questionCoords=" + questionCoords);
+    //console.log("resultsData=" + resultsData);
+
+    var resultLocations = [];
+    Object.keys(resultsData).sort().forEach(function(key) {
+      //console.log('player=' + key + "___" + resultsData[key]);
+      var lat = resultsData[key].resultCoordinates.replace("(", "").replace(")", "").split(',')[0];
+      var lng = resultsData[key].resultCoordinates.replace("(", "").replace(")", "").split(',')[1];
+      //console.log('_coords=' + lat + " " + lng);
+      resultLocations.push([resultsData[key].resultId, lat, lng])
+    });
   </script>
 
   <script type="text/javascript">

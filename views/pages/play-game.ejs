@@ -10,12 +10,14 @@
   <link rel="stylesheet" type="text/css" href="https://nav.files.bbci.co.uk/orbit/ece9cb048f668bbc4cc6214737a6cdb6/css/orb-ltr.min.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="/stylesheets/play-game.css" />
 
-  <script>
+  <script type='text/javascript'>
   //parse the database results
   var saveUrl = ""
-  var gameId = "<%= results[0].locations.gameId %>";
-  var questions = <%- JSON.stringify(results[0].locations.myLocations) %>;
+  var gameId =  JSON.parse("<%= JSON.stringify(gameId) %>".replace(/&#34;/g, '"'));
+  var questions =  JSON.parse("<%= JSON.stringify(locations.myLocations) %>".replace(/&#34;/g, '"'));
   var numberCompleted = 0;
+  //console.log("gameId=" + gameId);
+  //console.log("questions=" + questions);
 
   function saveResult() {
     // get updated values to update the saveurl
