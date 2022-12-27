@@ -30,7 +30,7 @@
 </head> 
 
 <body>
-	<div id="map" style="width: 1600px; height: 1600px;"></div>
+	<div id="map" style="width: 100%; height: 100%;"></div>
 	<!--<div id="map" style="width: 1600px; height: 1600px;"></div>-->
 	<!--Try fullscreen ^-->
 
@@ -59,6 +59,94 @@
   var geocoder;
   var map;
   var addressCoordsMap = {};
+
+const chicago = { lat: 41.85, lng: -87.65 };
+
+/**
+ * Creates a control that recenters the map on Chicago.
+ */
+ function createCenterControl(map) {
+  const controlButton = document.createElement('button');
+
+  // Set CSS for the control.
+  controlButton.style.backgroundColor = '#fff';
+  controlButton.style.border = '2px solid #fff';
+  controlButton.style.borderRadius = '3px';
+  controlButton.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+  controlButton.style.color = 'rgb(25,25,25)';
+  controlButton.style.cursor = 'pointer';
+  controlButton.style.fontFamily = 'Roboto,Arial,sans-serif';
+  controlButton.style.fontSize = '16px';
+  controlButton.style.lineHeight = '38px';
+  controlButton.style.margin = '8px 0 22px';
+  controlButton.style.padding = '0 5px';
+  controlButton.style.textAlign = 'center';
+
+  controlButton.textContent = 'Who Won?';
+  controlButton.title = 'Click to see results';
+  controlButton.type = 'button';
+
+  controlButton.addEventListener("click", () => {
+    const pos = {
+      lat: -34.397,
+      lng: 150.644,
+    };
+
+    resultsInfoWindow.setPosition(pos);
+    resultsInfoWindow.setContent("");
+
+    var resultsMapAsc = new Map([...resultsMap.entries()].sort());
+    var lastLocation = "";
+    var content = "";
+    var summary = "";
+    var winnersCount = new Map();
+    var closestDistance = 9999999;
+    var closestName = "";
+
+    // loop through all questions
+    for (i = 0; i < questions.length; i++) {
+      currentLocation = questions[i]
+      // check if the results match the questions
+      currentReults = new Map()
+      for (let [resultKey, resultValue] of resultsMapAsc) {
+        if (resultKey.match(currentLocation)) {
+          //console.log("MATCH=" + resultKey)
+          currentName = resultKey.split("_")[1]
+          currentReults.set(currentName, resultValue);
+        }
+      }
+      // sort by no of miles
+      var currentResultsMapAsc = new Map([...currentReults.entries()].sort((a, b) => a[1] - b[1]));
+      content += "<p><b>" + currentLocation + "</b><br>*"
+      count = 0;
+      for (let [name, miles] of currentResultsMapAsc) {
+        if (count == 0) {
+          //var lastMiles = winnersCount[name];
+          var lastMiles = (winnersCount.get(name) === undefined) ? 0 : winnersCount.get(name);
+          winnersCount.set(name, miles + lastMiles );
+          //console.log("WON=" + name + " " + miles + " = " + winnersCount.get(name))
+        }
+        content += name + " = " + miles.toString().split(".")[0] + " miles<br>";
+      }
+    }
+    // NOW ADD SUMMARY TO THE TOP!
+    summary = "<h3>WINNERS! (Total)</h3>*"
+    var winnersCountAsc = new Map([...winnersCount.entries()].sort((a, b) => a[1] - b[1]));
+    for (let [name, miles] of winnersCountAsc) {
+        summary += name + " = " + miles.toString().split(".")[0] + " miles<br>";
+    }
+    
+    resultsInfoWindow.setContent(summary + "<hr>" + content);
+
+    resultsInfoWindow.open(map);
+    map.setCenter(pos);
+  });
+
+  return controlButton;
+}
+
+let resultsInfoWindow;
+var resultsMap = new Map();
   function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
       zoom: 3,
@@ -67,6 +155,17 @@
     });
     geocoder = new google.maps.Geocoder();
     //codeAddress(geocoder, map, null);
+
+  // Create the DIV to hold the control.
+  const centerControlDiv = document.createElement('div');
+  // Create the control.
+  const centerControl = createCenterControl(map);
+  // Append the control to the DIV.
+  centerControlDiv.appendChild(centerControl);
+
+  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(centerControlDiv);
+
+resultsInfoWindow = new google.maps.InfoWindow();
 
     var infowindow = new google.maps.InfoWindow();
     var marker, i;
@@ -118,6 +217,7 @@
     resultLocations[i][2] = polylineLength;
     //console.log("errorish:" + question + " _____ " + questionMarker + "----" + polylineLength + "====" + resultLocations[i][2] + "==" + name)
     console.log("Location=" + question + " Distance=" + resultLocations[i][2] + " Name=" + name)
+    resultsMap.set(question + "_" + name, resultLocations[i][2]);
 
     google.maps.event.addListener(marker, 'click', (function(marker, i) {
       return function() {
