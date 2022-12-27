@@ -60,6 +60,7 @@
   var geocoder;
   var map;
   var addressCoordsMap = {};
+  var controlButton;
 
 const chicago = { lat: 41.85, lng: -87.65 };
 
@@ -67,7 +68,7 @@ const chicago = { lat: 41.85, lng: -87.65 };
  * Creates a control that launches the summary window and recenters the map
  */
  function createCenterControl(map) {
-  const controlButton = document.createElement('button');
+  controlButton = document.createElement('button');
 
   // Set CSS for the control.
   controlButton.style.backgroundColor = '#fff';
@@ -252,6 +253,9 @@ var resultsMap = new Map();
       }
     })(marker, i));
   }
+
+  // finally launch the resultsInfoWindow on page load
+  controlButton.click();
 }
 
   function haversine_distance(mk1, mk2) {
@@ -264,6 +268,7 @@ var resultsMap = new Map();
     var d = 2 * R * Math.asin(Math.sqrt(Math.sin(difflat/2)*Math.sin(difflat/2)+Math.cos(rlat1)*Math.cos(rlat2)*Math.sin(difflon/2)*Math.sin(difflon/2)));
     return d;
   }
+
   </script>
 
   <script async defer
