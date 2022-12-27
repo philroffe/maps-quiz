@@ -40,6 +40,7 @@
     var questionCoords =  JSON.parse("<%= JSON.stringify(locations.myLocationCoords) %>".replace(/&#34;/g, '"'));
     var resultsData =  JSON.parse("<%= JSON.stringify(resultsData) %>".replace(/&#34;/g, '"'));
 
+    var locationMarker = new Map();
     //console.log("gameId=" + gameId);
     //console.log("questions=" + questions);
     //console.log("questionCoords=" + questionCoords);
@@ -63,7 +64,7 @@
 const chicago = { lat: 41.85, lng: -87.65 };
 
 /**
- * Creates a control that recenters the map on Chicago.
+ * Creates a control that launches the summary window and recenters the map
  */
  function createCenterControl(map) {
   const controlButton = document.createElement('button');
@@ -88,8 +89,8 @@ const chicago = { lat: 41.85, lng: -87.65 };
 
   controlButton.addEventListener("click", () => {
     const pos = {
-      lat: -34.397,
-      lng: 150.644,
+      lat: 0,
+      lng: 0,
     };
 
     resultsInfoWindow.setPosition(pos);
@@ -99,7 +100,8 @@ const chicago = { lat: 41.85, lng: -87.65 };
     var lastLocation = "";
     var content = "";
     var summary = "";
-    var winnersCount = new Map();
+    var winnersMilesCount = new Map();
+    var winnersWinCount = new Map();
     var closestDistance = 9999999;
     var closestName = "";
 
@@ -117,23 +119,44 @@ const chicago = { lat: 41.85, lng: -87.65 };
       }
       // sort by no of miles
       var currentResultsMapAsc = new Map([...currentReults.entries()].sort((a, b) => a[1] - b[1]));
-      content += "<p><b>" + currentLocation + "</b><br>*"
+      //content += "<p><b>" + currentLocation + "</b><br>*"
+      content += '<p><b><a id="markerLink_' + currentLocation + '" href="#" onclick="jumpToMarker(this);return false;">' + currentLocation + '</a></b><br>*'
+
       count = 0;
       for (let [name, miles] of currentResultsMapAsc) {
+        // calc sum of total miles
+        var lastMiles = (winnersMilesCount.get(name) === undefined) ? 0 : winnersMilesCount.get(name);
+        winnersMilesCount.set(name, miles + lastMiles );
+
+        // calc count of wins
+        var lastCount = (winnersWinCount.get(name) === undefined) ? 0 : winnersWinCount.get(name);
         if (count == 0) {
-          //var lastMiles = winnersCount[name];
-          var lastMiles = (winnersCount.get(name) === undefined) ? 0 : winnersCount.get(name);
-          winnersCount.set(name, miles + lastMiles );
-          //console.log("WON=" + name + " " + miles + " = " + winnersCount.get(name))
+          lastCount++;
         }
+        winnersWinCount.set(name, lastCount);
+
+        count++;
+
         content += name + " = " + miles.toString().split(".")[0] + " miles<br>";
       }
     }
     // NOW ADD SUMMARY TO THE TOP!
     summary = "<h3>WINNERS! (Total)</h3>*"
-    var winnersCountAsc = new Map([...winnersCount.entries()].sort((a, b) => a[1] - b[1]));
-    for (let [name, miles] of winnersCountAsc) {
-        summary += name + " = " + miles.toString().split(".")[0] + " miles<br>";
+
+    // merge counts
+    var winnersOverallCounts = new Map();
+    for (let [name, winCount] of winnersWinCount) {
+      // generate the inverse count to allow it to be sorted (inverse-count then miles)
+      var inverseCount = questions.length - winCount;
+      winnersOverallCounts.set(name, inverseCount + "." + winnersMilesCount.get(name).toString().split(".")[0]);
+    }
+
+    var winnersOverallCountsAsc = new Map([...winnersOverallCounts.entries()].sort((a, b) => a[1] - b[1]));
+    for (let [name, winCount] of winnersOverallCountsAsc) {
+      // re-inverse the count to get the real count
+      var reInverseCount = questions.length - winCount.split('.')[0];
+      var miles = winCount.split('.')[1];
+      summary += reInverseCount + " - " + name + " (" + miles + ")<br>";
     }
     
     resultsInfoWindow.setContent(summary + "<hr>" + content);
@@ -143,6 +166,14 @@ const chicago = { lat: 41.85, lng: -87.65 };
   });
 
   return controlButton;
+}
+
+function jumpToMarker(object) {
+  var question = object.id.split("_")[1]
+  var thisMarker = locationMarker.get(question);
+  //console.log(thisMarker)
+  map.setCenter(thisMarker.getPosition());
+  map.setZoom(10);
 }
 
 let resultsInfoWindow;
@@ -156,21 +187,16 @@ var resultsMap = new Map();
     geocoder = new google.maps.Geocoder();
     //codeAddress(geocoder, map, null);
 
-  // Create the DIV to hold the control.
-  const centerControlDiv = document.createElement('div');
-  // Create the control.
-  const centerControl = createCenterControl(map);
-  // Append the control to the DIV.
-  centerControlDiv.appendChild(centerControl);
+    // Create the DIV and the control.
+    const centerControlDiv = document.createElement('div');
+    const centerControl = createCenterControl(map);
+    centerControlDiv.appendChild(centerControl);
+    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(centerControlDiv);
 
-  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(centerControlDiv);
-
-resultsInfoWindow = new google.maps.InfoWindow();
-
+    resultsInfoWindow = new google.maps.InfoWindow();
     var infowindow = new google.maps.InfoWindow();
     var marker, i;
 
-    var locationMarker = new Map();
     for (i = 0; i < questions.length; i++) {
       var lat = questionCoords[i].replace("(", "").replace(")", "").split(',')[0];
       var lng = questionCoords[i].replace("(", "").replace(")", "").split(',')[1];
