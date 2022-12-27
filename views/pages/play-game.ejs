@@ -130,7 +130,13 @@
       map: map,
       position: pos,
       title: 'Drag to location, and click submit when you\'re ready',
-      draggable: true,
+      draggable: false,
+    });
+    //move the marker as the map pans
+    map.addListener("center_changed", function() {
+        var lat = map.getCenter().lat();
+        var lng = map.getCenter().lng();
+        marker.setPosition( new google.maps.LatLng( lat, lng ) );
     });
 
     //gets the pre-drag lat/long coordinates as a pair
@@ -150,7 +156,6 @@
     });
 
     map.setCenter(pos);
-
 
     var fullnameinput = document.getElementById('fullname');
     fullnameinput.onchange=fullnameinput.onkeyup= function() {
