@@ -7,7 +7,7 @@ body {
    font-family: Arial Unicode MS, Lucida Sans Unicode, Code2000, sans-serif; 
 }
 #map-canvas {
-	height: 80%;
+	height: 100%;
 	margin: 0px;
 	padding: 0px
 }
@@ -48,3 +48,25 @@ body {
 	background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
 	text-decoration: none;
 }
+
+.mapbutton {
+  background-color: #fff;
+  border: 2px solid #fff;
+  border-radius: 3px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.3);
+  color: rgb(25,25,25);
+  cursor: pointer;
+  font-family: Roboto,Arial,sans-serif;
+  font-size: 16px;
+  line-height: 38px;
+  margin: 8px 0 22px;
+  padding: 0 5px;
+  text-align: center;	
+}
+
+.spacer {
+	width:10px;
+	padding:10px;
+}
+
+  
