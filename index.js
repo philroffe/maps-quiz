@@ -56,9 +56,16 @@ express()
   .get('/play-game', async (req, res) => {
     var gameId = req.query.gameId;
     console.log('Got GET gameId:', gameId);
+    if (!gameId) {
+      gameId = -1;
+    }
     try {
+      var locations = {myLocations: []};
       const doc = await firestore.collection("games_" + gameId).doc('_questions').get();
-      res.render('pages/play-game', {gameId: gameId, locations: doc.data().locations });
+      if (doc.data()) {
+        locations = doc.data().locations;
+      }
+      res.render('pages/play-game', {gameId: gameId, locations: locations });
     } catch (err) {
       console.error(err);
       res.send("Error " + err);

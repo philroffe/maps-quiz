@@ -79,11 +79,47 @@
   var linkurl;
   var comma = ",";
 
+  /** Creates a control to capture the gameId
+  */
+  function createGameIdControls(map) {
+    const gameIdControlDiv = document.createElement('div');
+    /////    
+    const gameIdText = document.createElement('input');
+    gameIdText.setAttribute("id", "gameIdText"); 
+    gameIdText.setAttribute("class", "mapbutton"); 
+    gameIdText.setAttribute("placeholder", "Game ID?"); 
+
+    // create submit button
+    const gameIdSubmitButtonDiv = document.createElement('div');
+    gameIdSubmitControlButton = document.createElement('button');
+    gameIdSubmitControlButton.setAttribute("class", "btn"); 
+    gameIdSubmitControlButton.textContent = 'Submit';
+    gameIdSubmitButtonDiv.appendChild(gameIdSubmitControlButton);
+    // create the 
+    gameIdSubmitControlButton.addEventListener("click", () => {
+      var gameId = document.getElementById('gameIdText').value;
+      if (gameId.length > 0) {
+        // reload the page and goto the new gameId
+        location.href = "/play-game?gameId=" + gameId;
+      } else {
+        alert("Please enter your gameId");
+      }
+    });
+
+    gameIdControlDiv.appendChild(gameIdText);
+    gameIdControlDiv.appendChild(gameIdSubmitButtonDiv);
+    return gameIdControlDiv;
+  }
+
   /** Creates a control to capture the player name
   */
   function createNameControls(map) {
     const nameControlDiv = document.createElement('div');
     /////    
+    const gameIdHeader = document.createElement('text');
+    gameIdHeader.innerHTML = "Game: " + gameId + "<br>";
+    gameIdHeader.style.fontSize = "1.4em";
+
     const nameText = document.createElement('input');
     nameText.setAttribute("id", "nameText"); 
     nameText.setAttribute("class", "mapbutton"); 
@@ -109,6 +145,7 @@
       }
     });
 
+    nameControlDiv.appendChild(gameIdHeader);
     nameControlDiv.appendChild(nameText);
     nameControlDiv.appendChild(nameSubmitButtonDiv);
     nameControlDiv.appendChild(document.createElement('div'));
@@ -140,7 +177,7 @@
     quizTextDiv.appendChild(questionPara);
     const statusText = document.createElement('b');
     statusText.setAttribute("id", "statusText"); 
-    statusText.innerHTML = "Completed 0 of " + questions.length;;
+    statusText.innerHTML = "Completed 0 of " + questions.length;
     statusText.style.fontSize = "1.2em";
     quizTextDiv.appendChild(statusText);
 
@@ -226,8 +263,13 @@
     map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 
     // add the quiz control buttons and text
-    const nameControls = createNameControls(map);
-    map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(nameControls);
+    if (questions.length == 0) {
+      const gameIdControls = createGameIdControls(map);
+      map.controls[google.maps.ControlPosition.CENTER].push(gameIdControls);
+    } else {
+      const nameControls = createNameControls(map);
+      map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(nameControls);
+    }
 
     var pos = new google.maps.LatLng(50, 0);
     marker = new google.maps.Marker({
