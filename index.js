@@ -53,14 +53,36 @@ express()
       res.send("Error " + err);
     }
   })
+  .get('/api/get-player-answers', async (req, res) => {
+    console.log('Got API GET PLAYER ANSWERS query:', req.query);
+    var gameId = req.query.gameId;
+    var name = req.query.name;
+    console.log('gameId:', gameId);
+    console.log('name:', name);
+    try {
+      // get the player results
+      const resultsDBData = await firestore.collection("games_" + gameId).where('resultUser', '=', name).get();
+      //console.log('Got DB results:', resultsData);
+      var results = {}
+      resultsDBData.forEach((doc) => {
+        if (doc.id != "_questions") {
+          results[doc.data().resultId] = doc.data();
+          //console.log('Added Result' + doc.data().resultId);
+        }
+      });
+      //console.log('Got results:', results);
+      res.send(results);
+    } catch (err) {
+      console.error(err);
+      res.send("Error " + err);
+    }
+  })
   .get('/play-game', async (req, res) => {
     var gameId = req.query.gameId;
     console.log('Got GET gameId:', gameId);
-    if (!gameId) {
-      gameId = -1;
-    }
+    if (!gameId) { gameId = -1; }
     try {
-      var locations = {myLocations: []};
+      var locations = {myLocations: [], myLocationCoords: []};
       const doc = await firestore.collection("games_" + gameId).doc('_questions').get();
       if (doc.data()) {
         locations = doc.data().locations;
@@ -173,11 +195,16 @@ express()
   .get('/show-results', async (req, res) => {
     var gameId = req.query.gameId;
     console.log('/show-results Got GET gameId:', gameId);
+    if (!gameId) { gameId = -1; }
     try {
       // get the initial questions
+      var locations = {myLocations: [], myLocationCoords: []};
       const questionsDoc = await firestore.collection("games_" + gameId).doc('_questions').get();
+      if (questionsDoc.data()) {
+        locations = questionsDoc.data().locations;
+      }
       // get the player results
-      const resultsDBData = await firestore.collection("games_" + gameId).where('resultId', '>=', gameId).get();
+      const resultsDBData = await firestore.collection("games_" + gameId).where('gameId', '=', gameId).get();
       //console.log('Got DB results:', resultsData);
       var results = {}
       resultsDBData.forEach((doc) => {
@@ -187,27 +214,8 @@ express()
         }
       });
 
-      var gameData = { gameId: gameId, locations: questionsDoc.data().locations
-        , myLocations: questionsDoc.data().myLocations, resultsData: results };
+      var gameData = { gameId: gameId, locations: locations, resultsData: results };
       res.render('pages/show-results', gameData );
-    } catch (err) {
-      console.error(err);
-      res.send("Error " + err);
-    }
-    })
-  .get('/show-results2', async (req, res) => {
-    var gameId = req.query.gameId;
-    console.log('/show-results2 Got GET gameId:', gameId);
-    try {
-      const client = await pool.connect();
-      const gamesDBResult = await client.query(`SELECT * FROM games WHERE gameid='${gameId}'`);
-      const resultsDBResult = await client.query(`SELECT * FROM gameresults WHERE gameid='${gameId}'`);
-      const results = { 'gamesDBResult': (gamesDBResult) ? gamesDBResult.rows : null,
-        'resultsDBResult': (resultsDBResult) ? resultsDBResult.rows : null};
-      //console.log('Got DB results:', results.results[0].locations);
-      console.log('Got DB results:', results);
-      res.render('pages/show-results2', results );
-      client.release();
     } catch (err) {
       console.error(err);
       res.send("Error " + err);

@@ -17,6 +17,7 @@
   var gameId =  JSON.parse("<%= JSON.stringify(gameId) %>".replace(/&#34;/g, '"'));
   var questions =  JSON.parse("<%= JSON.stringify(locations.myLocations) %>".replace(/&#34;/g, '"'));
   var questionsCompleted = {};
+  var playerName = "";
   //console.log("gameId=" + gameId);
   //console.log("questions=" + questions);
 
@@ -47,18 +48,13 @@
   function generateSaveURL() {
     var laturl=marker.getPosition().lat();
     var lngurl=marker.getPosition().lng();
-    // get the person name
-    var person = document.getElementById('nameText').value;
-    if (person != null) {
-      person.trim().replace(/ /g, '').replace(/\'/g, '');
-    }
     // get the questions
     var questionTextLocation = document.getElementById('currentQuestionTextLocation');
     var question = questionTextLocation.innerHTML;
 
     // combine as a URL
-    var linkurl = baseurl.concat(laturl,comma,lngurl,"&question=",question,"&person=",person);
-    var saveurl = baseurl.concat(person,"_",question,"&gameId=",gameId,"&resultuser=",person,"&resultlocationname=",question,"&resultcoordinates=",laturl,comma,lngurl);
+    var linkurl = baseurl.concat(laturl,comma,lngurl,"&question=",question,"&person=",playerName);
+    var saveurl = baseurl.concat(playerName,"_",question,"&gameId=",gameId,"&resultuser=",playerName,"&resultlocationname=",question,"&resultcoordinates=",laturl,comma,lngurl);
 
     return saveurl;
   }
@@ -134,12 +130,14 @@
     // create the 
     nameSubmitControlButton.addEventListener("click", () => {
       var person = document.getElementById('nameText').value;
-      person.trim().replace(/ /g, '').replace(/\'/g, '');
+      person = person.trim().replace(/ /g, '').replace(/\'/g, '');
       if (person.length > 0) {
+        playerName = person;
         // hide the name control and display the main quiz controls
         nameControlDiv.hidden = true;
         const quizControls = createQuizControls(map);
         map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(quizControls);
+        loadPreviouslySavedAnswers();
       } else {
         alert("Please enter your name");
       }
@@ -151,6 +149,23 @@
     nameControlDiv.appendChild(document.createElement('div'));
     nameControlDiv.appendChild(createSpacer());
     return nameControlDiv;
+  }
+
+  /** Creates a control to capture the player name
+  */
+  function loadPreviouslySavedAnswers() {
+    var url='/api/get-player-answers?gameId=' + gameId + "&name=" + playerName;
+    fetch(url)
+    .then(response => response.json())
+    .then(function(response) {
+      //console.log(response);
+      Object.keys(response).forEach(function(key) {
+        questionsCompleted[response[key].resultLocationName] = true;
+      });
+      updateQuestionLabels(0);
+    }).catch(function() {
+      console.log("API/DB error trying to lookup " + playerName + " results from " + gameId);
+    });
   }
 
   /** Creates a control that captures the quiz buttons
