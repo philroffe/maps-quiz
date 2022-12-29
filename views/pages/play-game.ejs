@@ -10,81 +10,57 @@
   <link rel="stylesheet" type="text/css" href="https://nav.files.bbci.co.uk/orbit/ece9cb048f668bbc4cc6214737a6cdb6/css/orb-ltr.min.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="/stylesheets/play-game.css" />
 
+
+
   <script type='text/javascript'>
   //parse the database results
-  var saveUrl = ""
   var gameId =  JSON.parse("<%= JSON.stringify(gameId) %>".replace(/&#34;/g, '"'));
   var questions =  JSON.parse("<%= JSON.stringify(locations.myLocations) %>".replace(/&#34;/g, '"'));
-  var numberCompleted = 0;
+  var questionsCompleted = {};
   //console.log("gameId=" + gameId);
   //console.log("questions=" + questions);
 
   function saveResult() {
     // get updated values to update the saveurl
-    updateSaveURLPreSubmit();
+    var saveurl = generateSaveURL();
+    console.log("saveurl=" + saveurl);
 
     const options = {};
     fetch(saveurl, options)
      .then( res => res.json() )
      .then( data => console.log(data) );
      
-    // update the dropdown to show it has been submitted successfully
-    var questioninput= document.getElementById('question');
-    question = questioninput.options[questioninput.selectedIndex].text;
-    if (!question.endsWith(" (Completed)")) {
-      questioninput.options[questioninput.selectedIndex].text = question + " (Completed)";
-      numberCompleted++;
-    }
+    // update the question to show it has been submitted successfully
+    var questionpara = document.getElementById('currentQuestionTextLocation');
+    var question = questionpara.innerHTML;
+    questionsCompleted[question] = true;
 
-    var statusText = "Completed " + numberCompleted + " of " + questions.length;
+    var statusText = "Completed " + Object.keys(questionsCompleted).length + " of " + questions.length;
     document.getElementById('statusText').innerHTML = statusText;
 
     // hide submit button for 1 secs to show pressed successfully, then reshow
-    var linkurl = document.getElementById('linkurl');
-
-    // auto move to next option
-    if (questioninput.selectedIndex < questions.length) {
-      questioninput.selectedIndex++;
-      // recentre marker and map
-      var pos = new google.maps.LatLng(51.4975941, -0.0803232);
-      marker.setPosition(pos);
-      map.setCenter(pos);
-      map.setZoom(5);
-      // flash submit button
-      linkurl.style.visibility = "hidden"; 
-      setTimeout(() => linkurl.style.visibility = "visible", 500);
-    } else {
-      // go back to top
-      questioninput.selectedIndex = 0;
-      // hide submit button
-      linkurl.style.visibility = "hidden"; 
-    }
-    // update the submit URL in preparation for next question as modified
-    //updateSubmitURL();
+    var submitControlButton = document.getElementById('submitControlButton');
+    submitControlButton.style.visibility = "hidden"; 
+    setTimeout(() => submitControlButton.style.visibility = "visible", 500);
   }
 
-    function updateSaveURLPreSubmit() {
-      //get the lat and long
-      document.getElementById("latbox").innerHTML=marker.getPosition().lat();
-      document.getElementById("longbox").innerHTML=marker.getPosition().lng();
-      var laturl=marker.getPosition().lat();
-      var lngurl=marker.getPosition().lng();
-      // get the person name
-      var person = document.getElementById('fullname').value;
-      if (person != null) {
-        person.trim().replace(/ /g, '').replace(/\'/g, '');
-      }
-      // get the questions
-      var questioninput= document.getElementById('question');
-      var question = questioninput.options[questioninput.selectedIndex].text;
-      question = question.replace(" (Completed)", "");
+  function generateSaveURL() {
+    var laturl=marker.getPosition().lat();
+    var lngurl=marker.getPosition().lng();
+    // get the person name
+    var person = document.getElementById('nameText').value;
+    if (person != null) {
+      person.trim().replace(/ /g, '').replace(/\'/g, '');
+    }
+    // get the questions
+    var questionTextLocation = document.getElementById('currentQuestionTextLocation');
+    var question = questionTextLocation.innerHTML;
 
-      // combine as a URL
-      var linkurl=baseurl.concat(laturl,comma,lngurl,"&question=",question,"&person=",person);
-      saveurl=baseurl.concat(person,"_",question,"&gameId=",gameId,"&resultuser=",person,"&resultlocationname=",question,"&resultcoordinates=",laturl,comma,lngurl);
+    // combine as a URL
+    var linkurl = baseurl.concat(laturl,comma,lngurl,"&question=",question,"&person=",person);
+    var saveurl = baseurl.concat(person,"_",question,"&gameId=",gameId,"&resultuser=",person,"&resultlocationname=",question,"&resultcoordinates=",laturl,comma,lngurl);
 
-      //store the url
-      document.getElementById("linkurl").href=saveurl;
+    return saveurl;
   }
   </script>
 
@@ -95,37 +71,165 @@
   <script src="map-options.js"></script>
 
   <script>
-  // Note: This example requires that you consent to location sharing when
-  // prompted by your browser. If you see a blank space instead of the map, this
-  // is probably because you have denied permission for location sharing.
-
   var map;
   var marker;
   var laturl;
   var lngurl;
-  // var baseurl = "?coordinates=";
   var baseurl = "/save-result?resultid=";
   var linkurl;
   var comma = ",";
 
+  /** Creates a control to capture the player name
+  */
+  function createNameControls(map) {
+    const nameControlDiv = document.createElement('div');
+    /////    
+    const nameText = document.createElement('input');
+    nameText.setAttribute("id", "nameText"); 
+    nameText.setAttribute("class", "mapbutton"); 
+    nameText.setAttribute("placeholder", "Your Name?"); 
+
+    // create submit button
+    const nameSubmitButtonDiv = document.createElement('div');
+    nameSubmitControlButton = document.createElement('button');
+    nameSubmitControlButton.setAttribute("class", "btn"); 
+    nameSubmitControlButton.textContent = 'Submit';
+    nameSubmitButtonDiv.appendChild(nameSubmitControlButton);
+    // create the 
+    nameSubmitControlButton.addEventListener("click", () => {
+      var person = document.getElementById('nameText').value;
+      person.trim().replace(/ /g, '').replace(/\'/g, '');
+      if (person.length > 0) {
+        // hide the name control and display the main quiz controls
+        nameControlDiv.hidden = true;
+        const quizControls = createQuizControls(map);
+        map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(quizControls);
+      } else {
+        alert("Please enter your name");
+      }
+    });
+
+    nameControlDiv.appendChild(nameText);
+    nameControlDiv.appendChild(nameSubmitButtonDiv);
+    nameControlDiv.appendChild(document.createElement('div'));
+    nameControlDiv.appendChild(createSpacer());
+    return nameControlDiv;
+  }
+
+  /** Creates a control that captures the quiz buttons
+  */
+  function createQuizControls(map) {
+    const quizControlDiv = document.createElement('div');
+    quizControlDiv.setAttribute("id", "quizControlDiv"); 
+
+    const quizTextDiv = document.createElement('div');
+    const questionPara = document.createElement('p');
+    questionPara.setAttribute("class", "mapbutton"); 
+    const questionTextNumber = document.createElement('text');
+    questionTextNumber.setAttribute("id", "currentQuestionTextNumber"); 
+    questionTextNumber.innerHTML = "1. ";
+    const questionTextLocation = document.createElement('text');
+    questionTextLocation.setAttribute("id", "currentQuestionTextLocation"); 
+    questionTextLocation.innerHTML = questions[0];
+    const questionTextCompleted = document.createElement('text');
+    questionTextCompleted.setAttribute("id", "currentQuestionTextCompleted"); 
+    questionPara.appendChild(questionTextNumber);
+    questionPara.appendChild(questionTextLocation);
+    questionPara.appendChild(questionTextCompleted);
+
+    quizTextDiv.appendChild(questionPara);
+    const statusText = document.createElement('b');
+    statusText.setAttribute("id", "statusText"); 
+    statusText.innerHTML = "Completed 0 of " + questions.length;;
+    statusText.style.fontSize = "1.2em";
+    quizTextDiv.appendChild(statusText);
+
+    // create the next and prev buttons
+    prevControlButton = document.createElement('button');
+    prevControlButton.setAttribute("class", "mapbutton"); 
+    prevControlButton.textContent = 'Prev';
+    nextControlButton = document.createElement('button');
+    nextControlButton.setAttribute("class", "mapbutton"); 
+    nextControlButton.textContent = 'Next';
+    // create listeners when next/prev buttons clicked
+    prevControlButton.addEventListener("click", () => {
+      var currentQuestion = questionTextLocation.innerHTML
+      var currentIndex = questions.indexOf(currentQuestion);
+      var newIndex = currentIndex;
+      if (currentIndex > 0) {
+        newIndex = currentIndex - 1;
+      } else {
+        newIndex = questions.length -1;
+      }
+      updateQuestionLabels(newIndex);
+    });
+    nextControlButton.addEventListener("click", () => {
+      var currentQuestion = questionTextLocation.innerHTML
+      var currentIndex = questions.indexOf(currentQuestion);
+      var newIndex = currentIndex;
+      if (currentIndex < questions.length - 1) {
+        newIndex = currentIndex + 1;
+      } else {
+        newIndex = 0;
+      }
+      updateQuestionLabels(newIndex);
+    });
+
+    // create submit button
+    const submitButtonDiv = document.createElement('div');
+    submitControlButton = document.createElement('button');
+    submitControlButton.setAttribute("id", "submitControlButton"); 
+    submitControlButton.setAttribute("class", "btn"); 
+    submitControlButton.textContent = 'Submit';
+    submitButtonDiv.appendChild(prevControlButton);
+    submitButtonDiv.appendChild(createSpacer());
+    submitButtonDiv.appendChild(submitControlButton);
+    submitButtonDiv.appendChild(createSpacer());
+    submitButtonDiv.appendChild(nextControlButton);
+    submitButtonDiv.appendChild(document.createElement('div'));
+    submitButtonDiv.appendChild(createSpacer());
+
+    submitControlButton.addEventListener("click", () => {
+      saveResult();
+      nextControlButton.click();
+      // recentre marker and map
+      var pos = new google.maps.LatLng(50, 0);
+      marker.setPosition(pos);
+      map.setCenter(pos);
+      map.setZoom(5);
+    });
+
+    quizControlDiv.appendChild(quizTextDiv);
+    quizControlDiv.appendChild(submitButtonDiv);
+    return quizControlDiv;
+  }
+
+  function createSpacer() {
+    const spacer = document.createElement('i');
+    spacer.setAttribute("class", "spacer"); 
+    return spacer;
+  }
+
+  function updateQuestionLabels(newIndex) {
+    var newQuestion = questions[newIndex];
+    var isCompleted = ""
+    if (questionsCompleted[newQuestion]) {
+      isCompleted = " &#10004;"
+    }
+    document.getElementById('currentQuestionTextNumber').innerHTML = (newIndex+1) + ". ";
+    document.getElementById('currentQuestionTextLocation').innerHTML = newQuestion;
+    document.getElementById('currentQuestionTextCompleted').innerHTML = isCompleted;
+  }
+
   //set map variables
   function initialize() {
+    map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 
-    map = new google.maps.Map(document.getElementById('map-canvas'),
-      mapOptions);
+    // add the quiz control buttons and text
+    const nameControls = createNameControls(map);
+    map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(nameControls);
 
-    var person = location.search.split('person=')[1];
-    if (person == null) {
-      person = "";
-    } else {
-      person = person.split('&')[0];
-    }
-    document.getElementById('fullname').value = person;
-
-    var question = ""
-    document.getElementById('question').selectedIndex = 0;
-
-    var pos = new google.maps.LatLng(51.4975941, -0.0803232);
+    var pos = new google.maps.LatLng(50, 0);
     marker = new google.maps.Marker({
       map: map,
       position: pos,
@@ -139,69 +243,10 @@
         marker.setPosition( new google.maps.LatLng( lat, lng ) );
     });
 
-    //gets the pre-drag lat/long coordinates as a pair
-    document.getElementById("latbox").innerHTML=marker.getPosition().lat(); 
-
-    //gets the pre-drag latlong coordinate
-    document.getElementById("latbox").innerHTML=marker.getPosition().lat(); 
-    document.getElementById("longbox").innerHTML=marker.getPosition().lng();
-    var laturl=marker.getPosition().lat();
-    var lngurl=marker.getPosition().lng();
-    var linkurl=baseurl.concat(laturl,comma,lngurl);
-    document.getElementById("linkurl").href=linkurl;
-
-    //gets the new latlong if the marker is dragged     
-    google.maps.event.addListener(marker, "drag", function(){
-      updateSubmitURL();
-    });
-
     map.setCenter(pos);
-
-    var fullnameinput = document.getElementById('fullname');
-    fullnameinput.onchange=fullnameinput.onkeyup= function() {
-      person = fullnameinput.value;
-      updateSubmitURL();
-    };
-    fullnameinput.onclick=fullnameinput.onclick= function() {
-      person = fullnameinput.value;
-      updateSubmitURL();
-    };
-
-    var questioninput= document.getElementById('question');
-    questioninput.onchange= function() {
-      question = questioninput.options[questioninput.selectedIndex].text;
-      question = question.replace(" (Completed)", "");
-      updateSubmitURL();
-    };
-
-    function updateSubmitURL() {
-      // hide the submit link if it's not
-      if (question == null || question == "Select..." || question == "") {
-        document.getElementById("linkurl").href="#ChooseQuestion";
-        document.getElementById("linkurl").style.visibility = "hidden"; 
-      } else if (person == null || person == "") {
-        document.getElementById("linkurl").href="#AddName";
-        document.getElementById("linkurl").style.visibility = "hidden"; 
-      } else {
-        document.getElementById("linkurl").style.visibility = "visible"; 
-      }
-    }
-    updateSubmitURL();
-
 
     // polulate the dropdown list of questions
     console.log("Playing game: " + gameId + " Questions:" + questions);
-    for (i = 0; i < questions.length; i++) {
-      if ((questions[i] != null) && (questions[i] != "") && (questions[i] != "undefined")) {
-        var select = document.getElementById("question");
-        select.options[select.options.length] = new Option(questions[i]);
-        //console.log(questions[i]);
-      }
-    }
-
-    var statusText = "Completed " + numberCompleted + " of " + questions.length;
-    document.getElementById('statusText').innerHTML = statusText;
-  
   }
 
   google.maps.event.addDomListener(window, 'load', initialize);
@@ -211,20 +256,5 @@
 </head>
 <body>
   <div id="map-canvas"></div>
-  <div class="main">
-   <b>Enter your name, choose a location, move the pin...</b>
-   <h3> 
-    Name:<input type="text" id="fullname" name="fullname" maxlength="6" size="6">
-    <select name="question" id="question">
-      <option value="NULL">Select...</option>
-    </select>
-    <p>
-      <button id="linkurl" class="btn" onclick="saveResult()">Submit</button>
-      <div id="statusText">Completed 0 of 0</div>
-    </h3>
-  </div>
-  <div id="latbox"></div>
-  <div id="longbox"></div>
-
 </body>
 </html>

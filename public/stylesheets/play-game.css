@@ -59,10 +59,25 @@ body {
   font-family: Roboto,Arial,sans-serif;
   font-size: 16px;
   line-height: 38px;
-  margin: 8px 0 22px;
-  padding: 0 5px;
+  margin: 8px 0 8px;
+  padding: 0 0px;
   text-align: center;	
 }
+.mapbuttonA {
+  background-color: transparent;
+  border: 0px solid #fff;
+  border-radius: 0px;
+  box-shadow: 0 0px 0px rgba(0,0,0,0);
+  color: rgb(25,25,25);
+  cursor: pointer;
+  font-family: Roboto,Arial,sans-serif;
+  font-size: 16px;
+  line-height: 38px;
+  margin: 8px 0 8px;
+  padding: 0 0px;
+  text-align: center;	
+}
+
 
 .spacer {
 	width:10px;
