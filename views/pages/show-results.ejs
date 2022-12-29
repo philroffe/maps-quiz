@@ -10,37 +10,7 @@
   <meta http-equiv="content-type" content="text/html; charset=UTF-8" /> 
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
   <title>Map Quiz Results</title> 
-  <style>
-  html, body {
-    height: 100%;
-    margin: 0px;
-    padding: 0px
-  }
-  #map-canvas {
-    height: 80%;
-    margin: 0px;
-    padding: 0px
-  }
-  .main {
-   width:90%;
-   padding:20px;
-   font-size: 1.2em;
- }
- .mapbutton {
-  background-color: #fff;
-  border: 2px solid #fff;
-  border-radius: 3px;
-  box-shadow: 0 2px 6px rgba(0,0,0,.3);
-  color: rgb(25,25,25);
-  cursor: pointer;
-  font-family: Roboto,Arial,sans-serif;
-  font-size: 16px;
-  line-height: 38px;
-  margin: 8px 0 22px;
-  padding: 0 5px;
-  text-align: center; 
-}
- </style>
+  <link rel="stylesheet" type="text/css" href="/stylesheets/play-game.css" />
 </head> 
 
 <body>
@@ -76,7 +46,37 @@
   var addressCoordsMap = {};
   var controlButton;
 
-const chicago = { lat: 41.85, lng: -87.65 };
+  /** Creates a control to capture the gameId
+  */
+  function createGameIdControls(map) {
+    const gameIdControlDiv = document.createElement('div');
+    /////    
+    const gameIdText = document.createElement('input');
+    gameIdText.setAttribute("id", "gameIdText"); 
+    gameIdText.setAttribute("class", "mapbutton"); 
+    gameIdText.setAttribute("placeholder", "Game ID?"); 
+
+    // create submit button
+    const gameIdSubmitButtonDiv = document.createElement('div');
+    gameIdSubmitControlButton = document.createElement('button');
+    gameIdSubmitControlButton.setAttribute("class", "btn"); 
+    gameIdSubmitControlButton.textContent = 'Submit';
+    gameIdSubmitButtonDiv.appendChild(gameIdSubmitControlButton);
+    // create the 
+    gameIdSubmitControlButton.addEventListener("click", () => {
+      var gameId = document.getElementById('gameIdText').value;
+      if (gameId.length > 0) {
+        // reload the page and goto the new gameId
+        location.href = "/show-results?gameId=" + gameId;
+      } else {
+        alert("Please enter your gameId");
+      }
+    });
+
+    gameIdControlDiv.appendChild(gameIdText);
+    gameIdControlDiv.appendChild(gameIdSubmitButtonDiv);
+    return gameIdControlDiv;
+  }
 
 /**
  * Creates a control that launches the summary window and recenters the map
@@ -84,7 +84,7 @@ const chicago = { lat: 41.85, lng: -87.65 };
  function createCenterControl(map) {
   controlButton = document.createElement('button');
   controlButton.setAttribute("class", "mapbutton"); 
-  
+
   controlButton.textContent = 'Who Won?';
   controlButton.title = 'Click to see results';
   controlButton.type = 'button';
@@ -189,11 +189,17 @@ var resultsMap = new Map();
     geocoder = new google.maps.Geocoder();
     //codeAddress(geocoder, map, null);
 
-    // Create the DIV and the control.
-    const centerControlDiv = document.createElement('div');
-    const centerControl = createCenterControl(map);
-    centerControlDiv.appendChild(centerControl);
-    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(centerControlDiv);
+    // add the quiz control buttons and text
+    if (questions.length == 0) {
+      const gameIdControls = createGameIdControls(map);
+      map.controls[google.maps.ControlPosition.CENTER].push(gameIdControls);
+    } else {
+      // Create the DIV and the control.
+      const centerControlDiv = document.createElement('div');
+      const centerControl = createCenterControl(map);
+      centerControlDiv.appendChild(centerControl);
+      map.controls[google.maps.ControlPosition.TOP_RIGHT].push(centerControlDiv);
+    }
 
     resultsInfoWindow = new google.maps.InfoWindow();
     var infowindow = new google.maps.InfoWindow();
